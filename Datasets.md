@@ -1,5 +1,5 @@
 Dataset Links for Plant Disease Project
-- PlantVillage dataset
+ru- PlantVillage dataset
 https://www.kaggle.com/datasets/emmarex/plantdisease (kaggle.com in Bing)
 - PlantDoc dataset
 https://github.com/pratikkayal/PlantDoc-Dataset (github.com in Bing)

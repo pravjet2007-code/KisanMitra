@@ -1,0 +1,22 @@
+# Node and Frontend
+node_modules/
+dist/
+.env
+.env.local
+
+# Python and Backend
+.venv/
+__pycache__/
+*.py[cod]
+*$py.class
+sql_app.db
+
+# Project Specific
+PlantVillage/
+.gemini/
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
