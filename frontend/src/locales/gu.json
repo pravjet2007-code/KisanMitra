@@ -23,9 +23,9 @@
     "termsOfService": "સેવાની શરતો",
     "description": "ક્ષેત્રમાં તમારો ડિજિટલ સાથી. ચોક્કસ ખેતીથી લઈને સુરક્ષિત વેચાણ સુધી - IoT, AI અને વિશ્વાસ સાથે ભારતીય કૃષિને સશક્તિકરણ.",
     "builtFor": "ભારતીય કૃષિ માટે બનાવેલ",
-    "languages8": "08 ભાષાઓ",
+    "languages22": "22 ભાષાઓ",
     "voiceEnabled": "વૉઇસ સક્ષમ",
-    "securePayments": "સુરક્ષિત ચુકવણી"
+    "securePayments": "સુરક્ષિત ચૂકવણી"
   },
   "home": {
     "heroTitle1": "સ્માર્ટ ફાર્મિંગ.",
@@ -93,7 +93,7 @@
       }
     },
     "voiceSupported": "વૉઇસ સપોર્ટેડ",
-    "languages": "08 ભાષાઓ",
+    "languages": "22 ભાષાઓ",
     "securePayments": "સુરક્ષિત ચુકવણીઓ",
     "joinBuyer": "ખરીદનાર તરીકે જોડાઓ",
     "watchDemo": "ડેમો જુઓ",

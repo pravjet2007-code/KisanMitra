@@ -23,7 +23,7 @@
     "termsOfService": "Terms of Service",
     "description": "Your Digital Saathi in the Field. From precision farming to secure selling — empowering Indian agriculture with IoT, AI, and trust.",
     "builtFor": "Built for Indian Agriculture",
-    "languages8": "08 Languages",
+    "languages22": "22 Languages",
     "voiceEnabled": "Voice Enabled",
     "securePayments": "Secure Payments"
   },
@@ -91,7 +91,7 @@
       }
     },
     "voiceSupported": "Voice Supported",
-    "languages": "08 Languages",
+    "languages": "22 Languages",
     "securePayments": "Secure Payments",
     "joinBuyer": "Join as Buyer",
     "watchDemo": "Watch Demo",

@@ -107,16 +107,6 @@ export default function KisanBot() {
     return () => window.removeEventListener('kisanbot:open', handler);
   }, []);
 
-  // Pre-load voices to avoid issues where getVoices() is empty on first call
-  useEffect(() => {
-    if (window.speechSynthesis) {
-      window.speechSynthesis.getVoices();
-      window.speechSynthesis.onvoiceschanged = () => {
-        window.speechSynthesis.getVoices();
-      };
-    }
-  }, []);
-
   // TTS function
   const speak = useCallback((text: string, lang: string) => {
     if (!ttsEnabled || !window.speechSynthesis) return;
@@ -129,18 +119,8 @@ export default function KisanBot() {
 
     // Try to find a native voice for the language
     const voices = window.speechSynthesis.getVoices();
-    // 1. Try exact locale match (e.g., hi-IN)
-    let match = voices.find((v) => v.lang === lang || v.lang.replace('_', '-') === lang);
-    // 2. Try just the language code prefix (e.g., hi)
-    if (!match) {
-      match = voices.find((v) => v.lang.startsWith(lang.split('-')[0]));
-    }
-    // 3. Optional: Prioritize Google voices if available since they usually sound better
-    if (match) {
-        const betterMatch = voices.find((v) => (v.lang === lang || v.lang.replace('_', '-') === lang) && v.name.includes('Google'));
-        if (betterMatch) match = betterMatch;
-        utterance.voice = match;
-    }
+    const match = voices.find((v) => v.lang.startsWith(lang.split('-')[0]));
+    if (match) utterance.voice = match;
 
     utterance.onstart = () => setIsSpeaking(true);
     utterance.onend = () => setIsSpeaking(false);
