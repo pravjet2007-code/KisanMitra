@@ -1,40 +1,37 @@
 import { Link } from 'react-router-dom';
 import { Sprout, Mail, Phone, MapPin } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
+
+const footerLinks = [
+  {
+    title: 'Platform',
+    links: [
+      { label: 'Features', path: '/features' },
+      { label: 'Marketplace', path: '/marketplace' },
+      { label: 'Farmer Dashboard', path: '/farmer-dashboard' },
+      { label: 'Buyer Dashboard', path: '/buyer-dashboard' },
+    ],
+  },
+  {
+    title: 'Resources',
+    links: [
+      { label: 'Documentation', path: '#' },
+      { label: 'API Reference', path: '#' },
+      { label: 'Help Center', path: '#' },
+      { label: 'Blog', path: '#' },
+    ],
+  },
+  {
+    title: 'Company',
+    links: [
+      { label: 'About Us', path: '#' },
+      { label: 'Careers', path: '#' },
+      { label: 'Privacy Policy', path: '#' },
+      { label: 'Terms of Service', path: '#' },
+    ],
+  },
+];
 
 export default function Footer() {
-  const { t } = useTranslation();
-
-  const footerLinks = [
-    {
-      title: t('footer.platform'),
-      links: [
-        { label: t('nav.features'), path: '/features' },
-        { label: t('nav.marketplace'), path: '/marketplace' },
-        { label: t('nav.farmerDashboard'), path: '/farmer-dashboard' },
-        { label: t('nav.buyerDashboard'), path: '/buyer-dashboard' },
-      ],
-    },
-    {
-      title: t('footer.resources'),
-      links: [
-        { label: t('footer.documentation'), path: '#' },
-        { label: t('footer.apiReference'), path: '#' },
-        { label: t('footer.helpCenter'), path: '#' },
-        { label: t('footer.blog'), path: '#' },
-      ],
-    },
-    {
-      title: t('footer.company'),
-      links: [
-        { label: t('footer.aboutUs'), path: '#' },
-        { label: t('footer.careers'), path: '#' },
-        { label: t('footer.privacyPolicy'), path: '#' },
-        { label: t('footer.termsOfService'), path: '#' },
-      ],
-    },
-  ];
-
   return (
     <footer className="bg-earth text-white relative overflow-hidden">
       {/* Decorative top border */}
@@ -54,7 +51,7 @@ export default function Footer() {
               </span>
             </Link>
             <p className="text-white/50 text-sm leading-relaxed max-w-sm mb-6">
-              {t('footer.description')}
+              Your Digital Saathi in the Field. From precision farming to secure selling — empowering Indian agriculture with IoT, AI, and trust.
             </p>
             <div className="space-y-2.5">
               <div className="flex items-center gap-2.5 text-sm text-white/40">
@@ -97,14 +94,14 @@ export default function Footer() {
         {/* Bottom bar */}
         <div className="py-6 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-xs text-white/30">
-            © {new Date().getFullYear()} KISAN MITRA. {t('footer.builtFor')}.
+            © {new Date().getFullYear()} KISAN MITRA. Built for Indian Agriculture.
           </p>
           <div className="flex items-center gap-4 text-xs text-white/30">
-            <span>{t('footer.languages8')}</span>
+            <span>08 Languages</span>
             <span className="w-1 h-1 bg-white/20 rounded-full" />
-            <span>{t('footer.voiceEnabled')}</span>
+            <span>Voice Enabled</span>
             <span className="w-1 h-1 bg-white/20 rounded-full" />
-            <span>{t('footer.securePayments')}</span>
+            <span>Secure Payments</span>
           </div>
         </div>
       </div>

@@ -1,107 +1,108 @@
 import { Link } from 'react-router-dom';
 import {
-  Leaf, Bug, Plane, TrendingUp, Shield, Smartphone, Globe,
+  Leaf, Bug, TrendingUp, Shield, Smartphone, Globe,
   Mic, CheckCircle2, ArrowRight, Sprout, Users, Lock,
-  BarChart3, Truck, ScanLine
+  BarChart3, Truck, ScanLine, BookOpen
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-const features = [
-  {
-    id: 'soil',
-    icon: Leaf,
-    title: 'Soil Health & Fertilizer Advisor',
-    tagline: 'Know your soil. Feed it right.',
-    description: 'Connect low-cost IoT sensors to measure pH, NPK, moisture, and temperature in real-time. Get plot-wise fertilizer recommendations tailored to your crop stage and soil condition.',
-    capabilities: [
-      'IoT sensor integration (BLE/LoRa/NB-IoT)',
-      'Lab report upload with OCR',
-      'Plot-wise nutrient deficiency mapping',
-      'Split-dose fertilizer recommendations',
-      'Organic & bio-fertilizer alternatives',
-      'Direct input ordering from marketplace',
-    ],
-    img: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=800&q=80',
-  },
-  {
-    id: 'pest',
-    icon: Bug,
-    title: 'Pest & Disease Monitoring',
-    tagline: 'Catch threats before they spread.',
-    description: 'Use your phone camera to scan pheromone sticky traps and leaf photos. On-device AI counts, classifies insects, identifies diseases, and predicts outbreaks using weather and community data.',
-    capabilities: [
-      'Phone-based trap scanning (AI counts & classifies)',
-      'Leaf photo disease identification',
-      'Outbreak risk scoring & prediction',
-      'Eco-friendly treatment recommendations',
-      'Community signal aggregation',
-      'SMS/WhatsApp alerts for pest risks',
-    ],
-    img: 'https://images.unsplash.com/photo-1592982537447-6f2a6a0c7c18?w=800&q=80',
-  },
-  {
-    id: 'drone',
-    icon: Plane,
-    title: 'Drone Crop Health & Irrigation',
-    tagline: 'See your fields from above.',
-    description: 'Pair supported drones and generate autonomous flight paths using your plot boundaries. Get NDVI/NDRE health maps, stress zone detection, and targeted spraying/irrigation guidance.',
-    capabilities: [
-      'Boundary-based autonomous flight paths',
-      'NDVI/NDRE vegetation index maps',
-      'Stress zone & disease zone detection',
-      'Targeted spraying area guidance',
-      'Irrigation adjustment recommendations',
-      'Processing in under 30 minutes',
-    ],
-    img: 'https://images.unsplash.com/photo-1508444845599-5c89863b1c44?w=800&q=80',
-  },
-  {
-    id: 'yield',
-    icon: TrendingUp,
-    title: 'Yield Prediction & Price Forecasting',
-    tagline: 'Plan your sale before the harvest.',
-    description: 'AI models combine your soil, pest, drone, weather, and regional data to forecast your plot-level yield with confidence bands. Price forecasting helps you decide when and where to sell.',
-    capabilities: [
-      'Plot-level yield prediction (MAPE ≤ 15–20%)',
-      'Price forecast for 1–6 weeks ahead',
-      'Mandi vs buyer price comparison',
-      'Net realization calculator (incl. transport)',
-      '"What-if" scenario analysis',
-      'Direct marketplace listing from forecast',
-    ],
-    img: 'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=800&q=80',
-  },
-  {
-    id: 'transactions',
-    icon: Shield,
-    title: 'Secure Transactions & Farmer Score',
-    tagline: 'Trust-first trading.',
-    description: 'Every transaction is protected by digital contracts, escrow payments, and standardized quality checks. Build your Farmer Score to unlock better deals and credit access.',
-    capabilities: [
-      'Digital contracts with clear terms',
-      'Escrow-protected payments (UPI)',
-      'Standardized quality verification checklists',
-      'Farmer Score based on performance metrics',
-      '24-hour dispute resolution with mediation',
-      'Full transaction history & audit trail',
-    ],
-    img: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&q=80',
-  },
-];
-
-const platformFeatures = [
-  { icon: Globe, title: '08 Languages', desc: 'Full UI and content in all scheduled Indian languages.' },
-  { icon: Mic, title: 'Voice Interface', desc: 'Speak commands in your language for hands-free operation.' },
-  { icon: Smartphone, title: 'Offline Mode', desc: 'Core features work without internet. Sync when connected.' },
-  { icon: Lock, title: 'Data Privacy', desc: 'End-to-end encryption. You control what buyers see.' },
-  { icon: ScanLine, title: 'Lot Traceability', desc: 'Complete farm-to-buyer passport for every transaction.' },
-  { icon: Truck, title: 'Logistics Integration', desc: 'Partner transport with rates, ETAs, and tracking.' },
-  { icon: Users, title: 'Farmer Score', desc: 'Build reliability to unlock better terms and credit.' },
-  { icon: BarChart3, title: 'Buyer Analytics', desc: 'Cost savings, compliance trends, supplier performance.' },
-];
-
 export default function FeaturesPage() {
   const { t } = useTranslation();
+
+  const features = [
+    {
+      id: 'soil',
+      icon: Leaf,
+      title: t('home.modules.soil.title', 'Soil Health & Fertilizer Advisor'),
+      tagline: t('home.modules.soil.tagline', 'Know your soil. Feed it right.'),
+      description: t('home.modules.soil.desc', 'Connect low-cost IoT sensors to measure pH, NPK, moisture, and temperature in real-time. Get plot-wise fertilizer recommendations tailored to your crop stage and soil condition.'),
+      capabilities: [
+        t('home.modules.soil.m1', '25% less fertilizer waste'),
+        t('home.modules.soil.m2', 'Plot-wise nutrient maps'),
+        t('home.modules.soil.m3', 'Direct input ordering'),
+        'IoT sensor integration (BLE/LoRa/NB-IoT)',
+        'Lab report upload with OCR',
+        'Organic & bio-fertilizer alternatives',
+      ],
+      img: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=800&q=80',
+    },
+    {
+      id: 'pest',
+      icon: Bug,
+      title: t('home.modules.pest.title', 'Pest & Disease Monitoring'),
+      tagline: t('home.modules.pest.tagline', 'Catch threats before they spread.'),
+      description: t('home.modules.pest.desc', 'Use your phone camera to scan pheromone sticky traps and leaf photos. On-device AI counts, classifies insects, identifies diseases, and predicts outbreaks using weather and community data.'),
+      capabilities: [
+        t('home.modules.pest.m1', '80%+ classification accuracy'),
+        t('home.modules.pest.m2', 'Community outbreak alerts'),
+        t('home.modules.pest.m3', 'Treatment guidance'),
+        'Leaf photo disease identification',
+        'Outbreak risk scoring & prediction',
+        'Eco-friendly treatment recommendations',
+      ],
+      img: 'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=800&q=80',
+    },
+    {
+      id: 'schemes',
+      icon: BookOpen,
+      title: t('home.modules.schemes.title', 'Government Schemes Finder'),
+      tagline: t('home.how.2.tagline', 'Every scheme you deserve, found instantly.'),
+      description: t('home.how.2.desc', 'Enter your profile details once and KisanMitra matches you with all eligible central and state government schemes — PM Kisan, KCC, Pradhan Mantri Fasal Bima Yojana, fertilizer subsidies, Soil Health Card, and more. Apply directly without visiting any office.'),
+      capabilities: [
+        '50+ central and state schemes covered',
+        'Instant eligibility checker based on your profile',
+        'Step-by-step application guidance',
+        'PM Kisan, KCC, PMFBY, eNAM support',
+        'Fertilizer & input subsidy discovery',
+        'Direct application links & document checklist',
+      ],
+      img: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800&q=80',
+    },
+    {
+      id: 'yield',
+      icon: TrendingUp,
+      title: t('home.modules.yield.title', 'Yield Prediction & Price Forecasting'),
+      tagline: t('home.modules.yield.tagline', 'Plan your sale before the harvest.'),
+      description: t('home.modules.yield.desc', 'AI models combine your soil, pest, weather, and regional data to forecast your plot-level yield with confidence bands. Price forecasting helps you decide when and where to sell.'),
+      capabilities: [
+        t('home.modules.yield.m1', '15-20% MAPE accuracy'),
+        t('home.modules.yield.m2', 'Real-time price forecasts'),
+        t('home.modules.yield.m3', 'Direct buyer connections'),
+        'Price forecast for 1–6 weeks ahead',
+        'Mandi vs buyer price comparison',
+        'Net realization calculator (incl. transport)',
+      ],
+      img: 'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=800&q=80',
+    },
+    {
+      id: 'transactions',
+      icon: Shield,
+      title: t('home.modules.secure.title', 'Secure Transactions & Farmer Score'),
+      tagline: t('home.modules.secure.tagline', 'Trust-first trading.'),
+      description: t('home.modules.secure.desc', 'Every transaction is protected by digital contracts, escrow payments, and standardized quality checks. Build your Farmer Score to unlock better deals and credit access.'),
+      capabilities: [
+        t('home.modules.secure.m1', '98% payment success'),
+        t('home.modules.secure.m2', '< 5 min UPI payout'),
+        t('home.modules.secure.m3', '< 2% dispute rate'),
+        'Standardized quality verification checklists',
+        'Farmer Score based on performance metrics',
+        '24-hour dispute resolution with mediation',
+      ],
+      img: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&q=80',
+    },
+  ];
+
+  const platformFeatures = [
+    { icon: Globe, title: t('home.languages', '22 Languages'), desc: 'Full UI and content in all scheduled Indian languages.' },
+    { icon: Mic, title: t('home.voiceEnabled', 'Voice Interface'), desc: 'Speak commands in your language for hands-free operation.' },
+    { icon: Smartphone, title: t('features.offlineMode.title', 'Offline Mode'), desc: t('features.offlineMode.desc', 'Core features work without internet. Sync when connected.') },
+    { icon: Lock, title: t('features.privacy.title', 'Data Privacy'), desc: t('features.privacy.desc', 'End-to-end encryption. You control what buyers see.') },
+    { icon: ScanLine, title: t('buyerDash.tabs.traceability', 'Lot Traceability'), desc: 'Complete farm-to-buyer passport for every transaction.' },
+    { icon: Truck, title: 'Logistics Integration', desc: 'Partner transport with rates, ETAs, and tracking.' },
+    { icon: Users, title: t('farmerDash.tabs.profile', 'Farmer Score'), desc: 'Build reliability to unlock better terms and credit.' },
+    { icon: BarChart3, title: t('buyerDash.tabs.analytics', 'Buyer Analytics'), desc: 'Cost savings, compliance trends, supplier performance.' },
+  ];
+
   return (
     <div>
       {/* Hero */}
@@ -112,13 +113,13 @@ export default function FeaturesPage() {
         </div>
         <div className="relative max-w-[1280px] mx-auto px-4 md:px-8 lg:px-12">
           <span className="inline-block px-4 py-1.5 bg-white/10 border border-white/15 text-white/80 text-sm font-bold rounded-full mb-5 backdrop-blur-sm">
-            <Sprout className="w-4 h-4 inline mr-1.5 -mt-0.5" /> {t('featuresPage.platformFeatures')}
+            <Sprout className="w-4 h-4 inline mr-1.5 -mt-0.5" /> {t('home.fiveModules', 'Platform Features')}
           </span>
           <h1 className="font-heading text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-5 max-w-3xl">
-            {t('featuresPage.heroTitle')}
+            {t('home.platformTitle', 'Everything You Need, From Soil to Sale')}
           </h1>
           <p className="text-white/50 text-lg max-w-2xl leading-relaxed">
-            {t('featuresPage.heroSubtitle')}
+            {t('home.platformSubtitle', '5 integrated modules that work together as a data flywheel — improving predictions, pricing, and outcomes every season.')}
           </p>
         </div>
       </section>
@@ -180,13 +181,13 @@ export default function FeaturesPage() {
         <div className="max-w-[1280px] mx-auto px-4 md:px-8 lg:px-12">
           <div className="text-center mb-14">
             <span className="inline-block px-4 py-1.5 bg-sage/10 text-sage text-sm font-bold rounded-full mb-4 tracking-wide uppercase">
-              Platform-Wide
+              {t('home.advantage', 'Platform-Wide')}
             </span>
             <h2 className="font-heading text-3xl md:text-4xl font-bold text-black mb-4">
-              {t('featuresPage.builtFor')}
+              {t('home.builtForAgriculture', 'Built for Every Indian Farmer')}
             </h2>
             <p className="text-medium text-lg max-w-2xl mx-auto">
-              {t('featuresPage.builtForSubtitle')}
+              {t('footer.description', 'Accessibility, security, and intelligence designed for real-world conditions.')}
             </p>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -211,23 +212,23 @@ export default function FeaturesPage() {
         </div>
         <div className="relative max-w-[800px] mx-auto px-4 md:px-8 text-center">
           <h2 className="font-heading text-3xl md:text-4xl font-bold text-white mb-4">
-            {t('featuresPage.ctaTitle')}
+            {t('home.startFarming', 'Start Using KISAN MITRA Today')}
           </h2>
           <p className="text-white/50 text-lg mb-8">
-            {t('featuresPage.ctaSubtitle')}
+            {t('home.how.1.desc', 'Set up your farm profile and begin receiving AI-powered recommendations in minutes.')}
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Link
               to="/farmer-dashboard"
               className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-terracotta text-white font-bold rounded-xl hover:bg-terracotta-dark transition-all shadow-xl"
             >
-              {t('nav.getStarted')} <ArrowRight className="w-5 h-5" />
+              {t('nav.farmerDashboard', 'Get Started')} <ArrowRight className="w-5 h-5" />
             </Link>
             <Link
               to="/marketplace"
               className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white/10 border border-white/20 text-white font-semibold rounded-xl hover:bg-white/20 transition-all backdrop-blur-sm"
             >
-              {t('featuresPage.browseMarketplace')}
+              {t('nav.marketplace', 'Browse Marketplace')}
             </Link>
           </div>
         </div>

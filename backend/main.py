@@ -1,6 +1,13 @@
-from fastapi import FastAPI, Depends, HTTPException, status, Header
+from fastapi import FastAPI, Depends, HTTPException, status, Header, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
+import os
+import joblib
+import numpy as np
+try:
+    import tensorflow as tf
+except ImportError:
+    tf = None
 import database
 import models
 import schemas
@@ -11,6 +18,35 @@ from typing import Optional
 models.Base.metadata.create_all(bind=database.engine)
 
 app = FastAPI(title="KisanMitra Backend", description="Serving the Farmer Dashboard")
+
+# ML Models Globals
+ml_model = None
+label_encoder = None
+
+def load_ml_models():
+    global ml_model, label_encoder
+    # Paths relative to the backend folder (assuming models are in the parent directory)
+    model_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'best_plant_model.keras')
+    le_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'label_encoder.pkl')
+    
+    if tf is not None and os.path.exists(model_path) and ml_model is None:
+        try:
+            # We use compile=False to avoid needing custom loss functions like SparseFocalLoss for pure inference
+            ml_model = tf.keras.models.load_model(model_path, compile=False)
+            print(f"Loaded ML model from {model_path}")
+        except Exception as e:
+            print(f"Error loading model: {e}")
+            
+    if os.path.exists(le_path) and label_encoder is None:
+        try:
+            label_encoder = joblib.load(le_path)
+            print(f"Loaded Label Encoder from {le_path}")
+        except Exception as e:
+            print(f"Error loading label encoder: {e}")
+
+@app.on_event("startup")
+async def startup_event():
+    load_ml_models()
 
 # CORS Configuration for React Frontend
 app.add_middleware(
@@ -87,3 +123,41 @@ def update_profile(profile: schemas.ProfileUpdate, db: Session = Depends(databas
 @app.get("/")
 def health_check():
     return {"status": "online", "message": "KisanMitra API is running"}
+
+@app.post("/api/predict")
+async def predict_disease(file: UploadFile = File(...)):
+    if not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="File provided is not an image.")
+        
+    if ml_model is None or label_encoder is None:
+        load_ml_models()
+        if ml_model is None or label_encoder is None:
+            raise HTTPException(status_code=503, detail="ML model is currently unavailable on the server.")
+            
+    try:
+        contents = await file.read()
+        
+        # Preprocess the image directly from memory using TensorFlow
+        img = tf.io.decode_image(contents, channels=3, expand_animations=False)
+        img = tf.image.resize(img, [224, 224])
+        
+        # Apply MobileNetV2 normalizations
+        img = tf.keras.applications.mobilenet_v2.preprocess_input(img)
+        img_array = tf.expand_dims(img, 0)
+        
+        # Run inference
+        predictions = ml_model.predict(img_array, verbose=0)
+        predicted_class_index = np.argmax(predictions, axis=1)[0]
+        confidence = float(predictions[0][predicted_class_index]) * 100
+        
+        predicted_label = label_encoder.inverse_transform([predicted_class_index])[0]
+        
+        return {
+            "success": True,
+            "disease_name": predicted_label,
+            "confidence": confidence
+        }
+        
+    except Exception as e:
+        print(f"Inference error: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to process image: {str(e)}")

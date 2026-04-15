@@ -20,13 +20,13 @@ export default function BuyerDashboard() {
   const [cropPrefs, setCropPrefs] = useState('');
 
   const tabs: { key: Tab; label: string; icon: React.ElementType }[] = [
-    { key: 'overview', label: t('buyerDash.tabs.overview'), icon: BarChart3 },
-    { key: 'forecast', label: t('buyerDash.tabs.forecast'), icon: TrendingUp },
-    { key: 'listings', label: t('buyerDash.tabs.listings'), icon: ShoppingCart },
-    { key: 'orders', label: t('buyerDash.tabs.orders'), icon: Package },
-    { key: 'analytics', label: t('buyerDash.tabs.analytics'), icon: BarChart3 },
-    { key: 'traceability', label: t('buyerDash.tabs.traceability'), icon: FileText },
-    { key: 'profile', label: t('buyerDash.tabs.profile'), icon: User },
+    { key: 'overview', label: t('buyerDash.tabs.overview', 'Overview'), icon: BarChart3 },
+    { key: 'forecast', label: t('buyerDash.tabs.forecast', 'Supply Forecast'), icon: TrendingUp },
+    { key: 'listings', label: t('buyerDash.tabs.listings', 'Browse Listings'), icon: ShoppingCart },
+    { key: 'orders', label: t('buyerDash.tabs.orders', 'Orders'), icon: Package },
+    { key: 'analytics', label: t('buyerDash.tabs.analytics', 'Analytics'), icon: BarChart3 },
+    { key: 'traceability', label: t('buyerDash.tabs.traceability', 'Traceability'), icon: FileText },
+    { key: 'profile', label: t('buyerDash.tabs.profile', 'Profile'), icon: User },
   ];
 
   const handleProfileSave = () => {
@@ -44,11 +44,11 @@ export default function BuyerDashboard() {
           <div>
             <div className="flex items-center gap-3 mb-1">
               <h1 className="font-heading text-2xl md:text-3xl font-bold text-black">
-                {profileSetup ? `${businessName} Dashboard` : t('buyerDash.title')}
+                {profileSetup ? t('fd.overview.welcomeTitle', '{{name}} Dashboard', { name: businessName }) : t('buyerDash.title', 'Buyer Dashboard')}
               </h1>
               {profileSetup && (
                 <span className="inline-flex items-center gap-1 px-3 py-1 bg-info/10 text-info text-xs font-semibold rounded-full">
-                  <CheckCircle2 className="w-3.5 h-3.5" /> Verified
+                  <CheckCircle2 className="w-3.5 h-3.5" /> {t('common.verified', 'Verified')}
                 </span>
               )}
             </div>
@@ -56,7 +56,7 @@ export default function BuyerDashboard() {
               {profileSetup ? (
                 <><Building2 className="w-4 h-4 text-info" /> {businessType} · {location} · {cropPrefs}</>
               ) : (
-                t('buyerDash.setupProfile')
+                t('bd.overview.welcomeSub', 'Set up your business profile to start procurement')
               )}
             </p>
           </div>
@@ -68,7 +68,7 @@ export default function BuyerDashboard() {
               to="/marketplace"
               className="hidden md:inline-flex items-center gap-2 px-5 py-3 bg-info text-white rounded-xl font-semibold hover:bg-info/90 transition-colors shadow-md"
             >
-              <Search className="w-4 h-4" /> {t('buyerDash.findSupply')}
+              <Search className="w-4 h-4" /> {t('buyerDash.findSupply', 'Find Supply')}
             </Link>
           </div>
         </div>
@@ -99,43 +99,43 @@ export default function BuyerDashboard() {
                 <div className="w-20 h-20 bg-info/10 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Building2 className="w-10 h-10 text-info" />
                 </div>
-                <h2 className="font-heading text-2xl font-bold text-black">{t('bd.setup.title')}</h2>
-                <p className="text-medium text-sm mt-1">{t('bd.setup.subtitle')}</p>
+                <h2 className="font-heading text-2xl font-bold text-black">{t('bd.setup.title', 'Business Onboarding')}</h2>
+                <p className="text-medium text-sm mt-1">{t('bd.setup.subtitle', 'Complete KYB verification to access supply forecasts and listings')}</p>
               </div>
               <div className="space-y-5">
                 <div>
-                  <label className="block text-sm font-medium text-dark mb-2">{t('bd.setup.name')}</label>
-                  <input type="text" value={businessName} onChange={(e) => setBusinessName(e.target.value)} placeholder="Enter business name" className="w-full px-4 py-3 bg-offwhite border border-border rounded-xl text-sm focus:border-info focus:ring-2 focus:ring-info/15 outline-none" />
+                  <label className="block text-sm font-medium text-dark mb-2">{t('bd.setup.name', 'Business Name *')}</label>
+                  <input type="text" value={businessName} onChange={(e) => setBusinessName(e.target.value)} placeholder={t('bd.setup.name', 'Enter business name')} className="w-full px-4 py-3 bg-offwhite border border-border rounded-xl text-sm focus:border-info focus:ring-2 focus:ring-info/15 outline-none" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-dark mb-2">{t('bd.setup.type')}</label>
+                  <label className="block text-sm font-medium text-dark mb-2">{t('bd.setup.type', 'Business Type')}</label>
                   <select value={businessType} onChange={(e) => setBusinessType(e.target.value)} className="w-full px-4 py-3 bg-offwhite border border-border rounded-xl text-sm focus:border-info focus:ring-2 focus:ring-info/15 outline-none appearance-none">
-                    <option value="">{t('bd.setup.selectType')}</option>
-                    <option value="{t('bd.setup.miller')}">Miller</option>
-                    <option value="{t('bd.setup.trader')}">Trader</option>
-                    <option value="{t('bd.setup.exporter')}">Exporter</option>
-                    <option value="{t('bd.setup.coop')}">Cooperative</option>
-                    <option value="{t('bd.setup.retail')}">Retailer</option>
-                    <option value="{t('bd.setup.process')}">Processor</option>
+                    <option value="">{t('bd.setup.selectType', 'Select type')}</option>
+                    <option value="Miller">{t('bd.setup.miller', 'Miller')}</option>
+                    <option value="Trader">{t('bd.setup.trader', 'Trader')}</option>
+                    <option value="Exporter">{t('bd.setup.exporter', 'Exporter')}</option>
+                    <option value="Cooperative">{t('bd.setup.coop', 'Cooperative')}</option>
+                    <option value="Retailer">{t('bd.setup.retail', 'Retailer')}</option>
+                    <option value="Processor">{t('bd.setup.process', 'Processor')}</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-dark mb-2">{t('bd.setup.location')}</label>
+                  <label className="block text-sm font-medium text-dark mb-2">{t('bd.setup.location', 'Location *')}</label>
                   <input type="text" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="City, State" className="w-full px-4 py-3 bg-offwhite border border-border rounded-xl text-sm focus:border-info focus:ring-2 focus:ring-info/15 outline-none" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-dark mb-2">{t('bd.setup.crops')}</label>
+                  <label className="block text-sm font-medium text-dark mb-2">{t('bd.setup.crops', 'Crop Preferences')}</label>
                   <input type="text" value={cropPrefs} onChange={(e) => setCropPrefs(e.target.value)} placeholder="e.g. Wheat, Rice, Grade A" className="w-full px-4 py-3 bg-offwhite border border-border rounded-xl text-sm focus:border-info focus:ring-2 focus:ring-info/15 outline-none" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-dark mb-2">{t('bd.setup.gst')}</label>
+                  <label className="block text-sm font-medium text-dark mb-2">{t('bd.setup.gst', 'GST / FSSAI Document')}</label>
                   <div className="border-2 border-dashed border-border rounded-xl p-8 text-center hover:border-info hover:bg-info/5 transition-all cursor-pointer">
                     <Upload className="w-8 h-8 text-muted mx-auto mb-2" />
-                    <p className="text-sm text-muted">{t('bd.setup.uploadDst')}</p>
+                    <p className="text-sm text-muted">{t('bd.setup.uploadDst', 'Click to upload verification documents')}</p>
                   </div>
                 </div>
                 <button onClick={handleProfileSave} className="w-full py-4 bg-info text-white font-heading font-bold rounded-xl hover:bg-info/90 transition-all shadow-md text-base">
-                  {t('bd.setup.submit')}
+                  {t('bd.setup.submit', 'Submit for Verification')}
                 </button>
               </div>
             </div>
@@ -148,10 +148,10 @@ export default function BuyerDashboard() {
             {!profileSetup && (
               <div className="bg-gradient-to-r from-info/10 to-sage/10 border-2 border-dashed border-info/30 rounded-2xl p-6 md:p-8 text-center">
                 <Building2 className="w-12 h-12 text-info mx-auto mb-4" />
-                <h3 className="font-heading text-xl font-bold text-black mb-2">{t('bd.overview.welcomeTitle')}</h3>
-                <p className="text-medium text-sm mb-4 max-w-md mx-auto">{t('bd.overview.welcomeSub')}</p>
+                <h3 className="font-heading text-xl font-bold text-black mb-2">{t('bd.overview.welcomeTitle', 'Welcome to KISAN MITRA Buyer Portal')}</h3>
+                <p className="text-medium text-sm mb-4 max-w-md mx-auto">{t('bd.overview.welcomeSub', 'Complete your business onboarding to access supply forecasts, verified listings, and procurement tools.')}</p>
                 <button onClick={() => setActiveTab('profile')} className="px-6 py-3 bg-info text-white rounded-xl font-semibold hover:bg-info/90 transition-colors shadow-md">
-                  {t('bd.overview.setupBtn')}
+                  {t('bd.overview.setupBtn', 'Setup Business Profile')}
                 </button>
               </div>
             )}
@@ -159,10 +159,10 @@ export default function BuyerDashboard() {
             {/* Stats */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {[
-                { label: t('bd.stats.alerts'), value: profileSetup ? '0' : '—', icon: Bell, bg: 'bg-info/10', color: 'text-info' },
-                { label: t('bd.stats.supply'), value: profileSetup ? 'Browse' : '—', icon: Package, bg: 'bg-sage/10', color: 'text-sage' },
-                { label: 'Orders', value: '0', icon: Truck, bg: 'bg-terracotta/10', color: 'text-terracotta' },
-                { label: t('bd.stats.savings'), value: '—', icon: TrendingUp, bg: 'bg-amber/10', color: 'text-amber' },
+                { label: t('bd.stats.alerts', 'Active Alerts'), value: profileSetup ? '0' : '—', icon: Bell, bg: 'bg-info/10', color: 'text-info' },
+                { label: t('bd.stats.supply', 'Available Supply'), value: profileSetup ? t('bd.overview.browseAll', 'Browse') : '—', icon: Package, bg: 'bg-sage/10', color: 'text-sage' },
+                { label: t('buyerDash.tabs.orders', 'Orders'), value: '0', icon: Truck, bg: 'bg-terracotta/10', color: 'text-terracotta' },
+                { label: t('bd.stats.savings', 'Cost Savings'), value: '—', icon: TrendingUp, bg: 'bg-amber/10', color: 'text-amber' },
               ].map((stat, i) => (
                 <div key={i} className="bg-white rounded-2xl p-5 shadow-xs border border-border hover:shadow-sm transition-all group">
                   <div className={`w-10 h-10 ${stat.bg} rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`}>
@@ -177,11 +177,11 @@ export default function BuyerDashboard() {
             {/* Alerts */}
             <div className="bg-white rounded-2xl p-6 shadow-xs border border-border">
               <h3 className="font-heading text-lg font-semibold text-black mb-4 flex items-center gap-2">
-                <Bell className="w-5 h-5 text-info" /> {t('bd.overview.alertsTitle')}
+                <Bell className="w-5 h-5 text-info" /> {t('bd.overview.alertsTitle', 'Procurement Alerts')}
               </h3>
               <div className="p-8 text-center">
                 <Bell className="w-10 h-10 text-muted mx-auto mb-3" />
-                <p className="text-muted text-sm">{t('bd.overview.noAlerts')}</p>
+                <p className="text-muted text-sm">{t('bd.overview.noAlerts', 'No alerts yet. Set up preferences to receive supply matching notifications.')}</p>
               </div>
             </div>
 
@@ -189,16 +189,16 @@ export default function BuyerDashboard() {
             <div className="bg-white rounded-2xl p-6 shadow-xs border border-border">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-heading text-lg font-semibold text-black flex items-center gap-2">
-                  <ShoppingCart className="w-5 h-5 text-sage" /> {t('bd.overview.listTitle')}
+                  <ShoppingCart className="w-5 h-5 text-sage" /> {t('bd.overview.listTitle', 'Available Listings')}
                 </h3>
                 <button onClick={() => setActiveTab('listings')} className="text-info text-sm font-medium hover:underline flex items-center gap-1">
-                  {t('bd.overview.browseAll')} <ChevronRight className="w-4 h-4" />
+                  {t('bd.overview.browseAll', 'Browse All')} <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
               <Link to="/marketplace" className="block p-8 text-center border-2 border-dashed border-border rounded-xl hover:border-info hover:bg-info/5 transition-all">
                 <ShoppingCart className="w-12 h-12 text-muted mx-auto mb-3" />
-                <h4 className="font-heading text-lg font-semibold text-black mb-2">{t('bd.overview.browseMarket')}</h4>
-                <p className="text-muted text-sm">{t('bd.overview.marketDesc')}</p>
+                <h4 className="font-heading text-lg font-semibold text-black mb-2">{t('bd.overview.browseMarket', 'Browse the Marketplace')}</h4>
+                <p className="text-muted text-sm">{t('bd.overview.marketDesc', 'Find verified farmer listings with quality data, pest records, and Farmer Scores.')}</p>
               </Link>
             </div>
           </div>
@@ -208,19 +208,19 @@ export default function BuyerDashboard() {
         {activeTab === 'forecast' && (
           <div className="space-y-6 animate-fade-in">
             <div className="bg-white rounded-2xl p-6 shadow-xs border border-border">
-              <h3 className="font-heading text-xl font-semibold text-black mb-6">{t('bd.forecast.title')}</h3>
+              <h3 className="font-heading text-xl font-semibold text-black mb-6">{t('bd.forecast.title', 'Regional Supply Forecast')}</h3>
               <div className="bg-offwhite bg-pattern-grid rounded-xl p-8 mb-6">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {['Punjab', 'Haryana', 'Maharashtra', 'Rajasthan'].map((region) => (
                     <div key={region} className="bg-white/80 rounded-xl p-4 text-center shadow-xs border border-border">
                       <MapPin className="w-6 h-6 text-terracotta mx-auto mb-2" />
-                      <p className="font-semibold text-black text-sm">{region}</p>
-                      <p className="text-xs text-muted mt-1">{t('bd.forecast.loading')}</p>
+                      <p className="font-semibold text-black text-sm">{t(`marketplaceContext.locations.${region.toLowerCase()}`, region)}</p>
+                      <p className="text-xs text-muted mt-1">{t('bd.forecast.loading', 'Forecast loading...')}</p>
                     </div>
                   ))}
                 </div>
               </div>
-              <p className="text-muted text-sm text-center">{t('bd.forecast.desc')}</p>
+              <p className="text-muted text-sm text-center">{t('bd.forecast.desc', 'Supply forecasts will populate as farmer data accumulates in your preferred regions.')}</p>
             </div>
           </div>
         )}
@@ -232,13 +232,13 @@ export default function BuyerDashboard() {
               <div className="flex flex-col md:flex-row gap-4 mb-6">
                 <div className="flex-1 relative">
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" />
-                  <input type="text" placeholder="{t('bd.listings.search')}" className="w-full pl-12 pr-4 py-3 bg-offwhite rounded-xl text-sm border border-border focus:border-info focus:ring-2 focus:ring-info/15 outline-none" />
+                  <input type="text" placeholder={t('bd.listings.search', 'Search by crop, location, or farmer...')} className="w-full pl-12 pr-4 py-3 bg-offwhite rounded-xl text-sm border border-border focus:border-info focus:ring-2 focus:ring-info/15 outline-none" />
                 </div>
               </div>
               <Link to="/marketplace" className="block p-8 text-center border-2 border-dashed border-border rounded-xl hover:border-info hover:bg-info/5 transition-all">
                 <ShoppingCart className="w-12 h-12 text-muted mx-auto mb-3" />
-                <h4 className="font-heading text-lg font-semibold text-black mb-2">{t('bd.listings.goTo')}</h4>
-                <p className="text-muted text-sm">{t('bd.listings.desc')}</p>
+                <h4 className="font-heading text-lg font-semibold text-black mb-2">{t('bd.listings.goTo', 'Go to Full Marketplace')}</h4>
+                <p className="text-muted text-sm">{t('bd.listings.desc', 'Browse all verified farm listings with advanced filters.')}</p>
               </Link>
             </div>
           </div>
@@ -248,13 +248,13 @@ export default function BuyerDashboard() {
         {activeTab === 'orders' && (
           <div className="space-y-6 animate-fade-in">
             <div className="bg-white rounded-2xl p-6 shadow-xs border border-border">
-              <h3 className="font-heading text-xl font-semibold text-black mb-6">{t('bd.orders.title')}</h3>
+              <h3 className="font-heading text-xl font-semibold text-black mb-6">{t('bd.orders.title', 'Order Management')}</h3>
               <div className="p-8 text-center">
                 <Package className="w-12 h-12 text-muted mx-auto mb-3" />
-                <h4 className="font-heading text-lg font-semibold text-black mb-2">{t('bd.orders.none')}</h4>
-                <p className="text-muted text-sm mb-4">{t('bd.orders.desc')}</p>
+                <h4 className="font-heading text-lg font-semibold text-black mb-2">{t('bd.orders.none', 'No Orders Yet')}</h4>
+                <p className="text-muted text-sm mb-4">{t('bd.orders.desc', 'Browse listings and make your first purchase to see orders here.')}</p>
                 <Link to="/marketplace" className="inline-flex items-center gap-2 px-6 py-3 bg-info text-white rounded-xl font-semibold hover:bg-info/90 transition-colors">
-                  <Search className="w-4 h-4" /> Find Supply
+                  <Search className="w-4 h-4" /> {t('buyerDash.findSupply', 'Find Supply')}
                 </Link>
               </div>
             </div>
@@ -266,10 +266,10 @@ export default function BuyerDashboard() {
           <div className="space-y-6 animate-fade-in">
             <div className="grid md:grid-cols-4 gap-4">
               {[
-                { label: t('bd.analytics.cost'), value: '—', desc: t('bd.analytics.track') },
-                { label: t('bd.analytics.quality'), value: '—', desc: t('bd.analytics.noData') },
-                { label: t('bd.analytics.dispute'), value: '0%', desc: t('bd.analytics.clean') },
-                { label: t('bd.analytics.suppliers'), value: '0', desc: t('bd.analytics.tagFarmers') },
+                { label: t('bd.analytics.cost', 'Avg. Cost vs Mandi'), value: '—', desc: t('bd.analytics.track', 'Complete orders to track') },
+                { label: t('bd.analytics.quality', 'Quality Compliance'), value: '—', desc: t('bd.analytics.noData', 'No data yet') },
+                { label: t('bd.analytics.dispute', 'Dispute Rate'), value: '0%', desc: t('bd.analytics.clean', 'Clean record') },
+                { label: t('bd.analytics.suppliers', 'Preferred Suppliers'), value: '0', desc: t('bd.analytics.tagFarmers', 'Tag farmers after purchase') },
               ].map((metric, i) => (
                 <div key={i} className="bg-white rounded-2xl p-6 shadow-xs border border-border text-center">
                   <p className="text-sm text-muted">{metric.label}</p>
@@ -279,10 +279,10 @@ export default function BuyerDashboard() {
               ))}
             </div>
             <div className="bg-white rounded-2xl p-6 shadow-xs border border-border">
-              <h3 className="font-heading text-xl font-semibold text-black mb-4">{t('bd.analytics.title')}</h3>
+              <h3 className="font-heading text-xl font-semibold text-black mb-4">{t('bd.analytics.title', 'Procurement Analytics')}</h3>
               <div className="p-8 text-center">
                 <BarChart3 className="w-12 h-12 text-muted mx-auto mb-3" />
-                <p className="text-muted text-sm">{t('bd.analytics.desc')}</p>
+                <p className="text-muted text-sm">{t('bd.analytics.desc', 'Analytics will populate as you complete procurement transactions.')}</p>
               </div>
             </div>
           </div>
@@ -292,12 +292,12 @@ export default function BuyerDashboard() {
         {activeTab === 'traceability' && (
           <div className="space-y-6 animate-fade-in">
             <div className="bg-white rounded-2xl p-6 shadow-xs border border-border">
-              <h3 className="font-heading text-xl font-semibold text-black mb-2">{t('bd.trace.title')}</h3>
-              <p className="text-muted text-sm mb-6">{t('bd.trace.subtitle')}</p>
+              <h3 className="font-heading text-xl font-semibold text-black mb-2">{t('bd.trace.title', 'Lot Traceability')}</h3>
+              <p className="text-muted text-sm mb-6">{t('bd.trace.subtitle', 'Complete farm-to-buyer history for compliance and export readiness.')}</p>
               <div className="p-8 text-center border-2 border-dashed border-border rounded-xl">
                 <FileText className="w-12 h-12 text-muted mx-auto mb-3" />
-                <h4 className="font-heading text-lg font-semibold text-black mb-2">{t('bd.trace.none')}</h4>
-                <p className="text-muted text-sm mb-4 max-w-md mx-auto">{t('bd.trace.desc')}</p>
+                <h4 className="font-heading text-lg font-semibold text-black mb-2">{t('bd.trace.none', 'No Traceability Records')}</h4>
+                <p className="text-muted text-sm mb-4 max-w-md mx-auto">{t('bd.trace.desc', 'Once you complete a purchase, a full lot passport will be generated with soil, pest, and quality data.')}</p>
               </div>
             </div>
           </div>

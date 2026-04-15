@@ -61,6 +61,7 @@ export default function KisanBot() {
   const [apiKeyMissing, setApiKeyMissing] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [pulseAnim, setPulseAnim] = useState(false);
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
 
   const langMap: Record<string, string> = {
     en: 'en-IN', hi: 'hi-IN', pa: 'pa-IN', mr: 'mr-IN',
@@ -82,6 +83,18 @@ export default function KisanBot() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, transcript]);
+
+  // Load voices
+  useEffect(() => {
+    const loadVoices = () => {
+      const v = window.speechSynthesis.getVoices();
+      if (v.length > 0) setVoices(v);
+    };
+    loadVoices();
+    if (window.speechSynthesis.onvoiceschanged !== undefined) {
+      window.speechSynthesis.onvoiceschanged = loadVoices;
+    }
+  }, []);
 
   // Welcome message when chat opens
   useEffect(() => {
@@ -109,24 +122,37 @@ export default function KisanBot() {
 
   // TTS function
   const speak = useCallback((text: string, lang: string) => {
-    if (!ttsEnabled || !window.speechSynthesis) return;
+    if (!window.speechSynthesis) return;
     window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
+    
+    // Clean text of emojis and special characters for better TTS
+    const cleanText = text.replace(/[^\u0000-\u007F\u0900-\u097F\u0A00-\u0A7F\u0B00-\u0B7F\u0B80-\u0BFF\u0C00-\u0C7F\u0C80-\u0CFF\u0D00-\u0D7F\u0D80-\u0DFF\s]/g, '');
+    
+    const utterance = new SpeechSynthesisUtterance(cleanText || text);
     utterance.lang = lang;
     utterance.rate = 0.9;
     utterance.pitch = 1.0;
     utterance.volume = 1.0;
 
-    // Try to find a native voice for the language
-    const voices = window.speechSynthesis.getVoices();
-    const match = voices.find((v) => v.lang.startsWith(lang.split('-')[0]));
-    if (match) utterance.voice = match;
+    // Try to find a specific voice for the language
+    const match = voices.find((v) => 
+      v.lang === lang || 
+      v.lang.replace('_', '-') === lang ||
+      v.lang.startsWith(lang.split('-')[0])
+    );
+    
+    if (match) {
+      utterance.voice = match;
+    }
 
     utterance.onstart = () => setIsSpeaking(true);
     utterance.onend = () => setIsSpeaking(false);
-    utterance.onerror = () => setIsSpeaking(false);
+    utterance.onerror = (e) => {
+      console.error('Speech error:', e);
+      setIsSpeaking(false);
+    };
     window.speechSynthesis.speak(utterance);
-  }, [ttsEnabled]);
+  }, [voices, ttsEnabled]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Send a message to Gemini
   const sendMessage = useCallback(async (text: string) => {
@@ -316,13 +342,22 @@ export default function KisanBot() {
                   </div>
                 )}
                 <div
-                  className={`max-w-[78%] px-3 py-2.5 rounded-2xl text-sm leading-relaxed ${
+                  className={`max-w-[78%] px-3 py-2.5 rounded-2xl text-sm leading-relaxed relative group ${
                     msg.role === 'user'
                       ? 'bg-green-600 text-white rounded-tr-sm'
                       : 'bg-gray-100 text-gray-800 rounded-tl-sm'
                   }`}
                 >
                   {msg.text}
+                  {msg.role === 'model' && (
+                    <button 
+                      onClick={() => speak(msg.text, selectedLang)}
+                      className="absolute -right-9 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-white border border-gray-200 text-green-600 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm hover:bg-green-50"
+                      title="Sunein"
+                    >
+                      <Volume2 className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                 </div>
                 {msg.role === 'user' && (
                   <div className="w-7 h-7 bg-green-600 rounded-full flex-shrink-0 flex items-center justify-center mt-0.5">

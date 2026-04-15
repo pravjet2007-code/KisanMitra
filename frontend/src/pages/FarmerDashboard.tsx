@@ -1,130 +1,122 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import {
-  Leaf, Bug, Plane, TrendingUp, Bell,
+  Leaf, Bug, TrendingUp, Bell,
   Droplets, Thermometer, Sun, Plus,
   MapPin, ChevronRight, BarChart3,
   ShoppingCart, Package, CreditCard, AlertTriangle,
-  Mic, Settings, User, Upload
+  Mic, Settings, User, Upload, BookOpen, Camera
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useAuth } from '../context/AuthContext';
 
-type Tab = 'overview' | 'soil' | 'pest' | 'drone' | 'market' | 'transactions' | 'profile';
+type Tab = 'overview' | 'soil' | 'pest' | 'disease' | 'schemes' | 'market' | 'transactions' | 'profile';
 
 export default function FarmerDashboard() {
   const { t, i18n } = useTranslation();
-  const { user, token, fetchProfile } = useAuth();
-  const navigate = useNavigate();
-
   const [activeTab, setActiveTab] = useState<Tab>('overview');
-  
-  // Local state for edits
+  const [showVoice, setShowVoice] = useState(false);
+  const [profileSetup, setProfileSetup] = useState(false);
   const [farmerName, setFarmerName] = useState('');
   const [farmLocation, setFarmLocation] = useState('');
   const [farmSize, setFarmSize] = useState('');
   const [cropType, setCropType] = useState('');
 
-  const profileSetup = Boolean(user?.name && user?.location && user?.crop_type);
+  // ML States
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isPredicting, setIsPredicting] = useState(false);
+  const [prediction, setPrediction] = useState<{ disease_name: string; confidence: number } | null>(null);
 
-  // Sync state when User loads
-  useEffect(() => {
-    if (user) {
-      setFarmerName(user.name || '');
-      setFarmLocation(user.location || '');
-      setFarmSize(user.farm_size || '');
-      setCropType(user.crop_type || '');
-    }
-  }, [user]);
-
-  // Auth Guard
-  useEffect(() => {
-    if (!token) {
-      navigate('/login');
-    }
-  }, [token, navigate]);
-
+  // Weather States
   const [weatherData, setWeatherData] = useState<any>(null);
-  const [agriData, setAgriData] = useState<any>(null);
   const [weatherLoading, setWeatherLoading] = useState(true);
-  const [locationName, setLocationName] = useState('Your Farm');
+  const [locationError, setLocationError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          fetchWeatherData(position.coords.latitude, position.coords.longitude);
-        },
-        (error) => {
-          console.error("Location access denied or failed", error);
-          fetchWeatherData(18.5204, 73.8567); // Fallback to Pune
-          setLocationName('Pune (Fallback)');
-        }
-      );
-    } else {
-      fetchWeatherData(18.5204, 73.8567);
-      setLocationName('Pune (Fallback)');
+    if (!navigator.geolocation) {
+      setLocationError('Geolocation not supported');
+      setWeatherLoading(false);
+      return;
     }
+
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        try {
+          const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=auto`);
+          const data = await res.json();
+          setWeatherData(data);
+        } catch (err) {
+          console.error('Weather fetch error:', err);
+        } finally {
+          setWeatherLoading(false);
+        }
+      },
+      (err) => {
+        setLocationError(err.message);
+        setWeatherLoading(false);
+      }
+    );
   }, []);
 
-  const fetchWeatherData = async (lat: number, lon: number) => {
-    try {
-      setWeatherLoading(true);
-      const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,et0_fao_evapotranspiration&hourly=soil_moisture_0_to_1cm&timezone=auto`);
-      const data = await res.json();
-      
-      setWeatherData(data);
-      
-      const currentHour = new Date().getHours();
-      const currentSoilMoisture = data.hourly?.soil_moisture_0_to_1cm?.[currentHour] || 0;
-      const todayEt0 = data.daily?.et0_fao_evapotranspiration?.[0] || 0;
-      
-      setAgriData({
-        soilMoisture: currentSoilMoisture,
-        et0: todayEt0
-      });
+  const tabs: { key: Tab; label: string; icon: React.ElementType }[] = [
+    { key: 'overview', label: t('farmerDash.tabs.overview', 'Overview'), icon: BarChart3 },
+    { key: 'soil', label: t('farmerDash.tabs.soil', 'Soil Health'), icon: Leaf },
+    { key: 'pest', label: t('farmerDash.tabs.pest', 'Pest Monitor'), icon: Bug },
+    { key: 'disease', label: t('farmerDash.tabs.disease', 'Disease Scanner'), icon: Camera },
+    { key: 'schemes', label: t('farmerDash.tabs.schemes', 'Gov Schemes'), icon: BookOpen},
+    { key: 'market', label: t('farmerDash.tabs.market', 'Marketplace'), icon: ShoppingCart },
+    { key: 'transactions', label: t('farmerDash.tabs.transactions', 'Transactions'), icon: CreditCard },
+    { key: 'profile', label: t('farmerDash.tabs.profile', 'Profile'), icon: Settings },
+  ];
 
-    } catch (err) {
-      console.error("Failed to fetch weather", err);
-    } finally {
-      setWeatherLoading(false);
+  const handleProfileSave = () => {
+    if (farmerName && farmLocation) {
+      setProfileSetup(true);
+      setActiveTab('overview');
     }
   };
 
-  const tabs: { key: Tab; label: string; icon: React.ElementType }[] = [
-    { key: 'overview', label: t('farmerDash.tabs.overview'), icon: BarChart3 },
-    { key: 'soil', label: t('farmerDash.tabs.soil'), icon: Leaf },
-    { key: 'pest', label: t('farmerDash.tabs.pest'), icon: Bug },
-    { key: 'drone', label: t('farmerDash.tabs.drone'), icon: Plane },
-    { key: 'market', label: t('farmerDash.tabs.market'), icon: ShoppingCart },
-    { key: 'transactions', label: t('farmerDash.tabs.transactions'), icon: CreditCard },
-    { key: 'profile', label: t('farmerDash.tabs.profile'), icon: Settings },
-  ];
+  const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
 
-  const handleProfileSave = async () => {
-    if (farmerName && farmLocation) {
-      try {
-        const res = await fetch("http://localhost:8000/api/user/profile", {
-           method: "PUT",
-           headers: {
-             "Content-Type": "application/json",
-             "Authorization": `Bearer ${token}`
-           },
-           body: JSON.stringify({
-             name: farmerName,
-             location: farmLocation,
-             farm_size: farmSize,
-             crop_type: cropType,
-             preferred_language: i18n.language
-           })
-        });
-        if (res.ok) {
-          await fetchProfile(); // refresh auth context
-          setActiveTab('overview');
-        }
-      } catch (err) {
-        console.error("Failed to save profile syncing to backend: ", err);
+    setSelectedFile(file);
+    setPreviewUrl(URL.createObjectURL(file));
+    setPrediction(null); // Reset previous prediction
+  };
+
+  const uploadAndPredict = async () => {
+    if (!selectedFile) return;
+
+    setIsPredicting(true);
+    setPrediction(null);
+
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+
+    try {
+      const response = await fetch('http://127.0.0.1:8000/api/predict', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Prediction API failed');
       }
+
+      const data = await response.json();
+      if (data.success) {
+        setPrediction({
+          disease_name: data.disease_name,
+          confidence: data.confidence,
+        });
+      }
+    } catch (error) {
+      console.error("Error predicting:", error);
+      alert("Analysis failed. Make sure the backend server is running.");
+    } finally {
+      setIsPredicting(false);
     }
   };
 
@@ -135,7 +127,7 @@ export default function FarmerDashboard() {
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
           <div>
             <h1 className="font-heading text-2xl md:text-3xl font-bold text-black">
-              {profileSetup ? `Namaste, ${farmerName}! 🙏` : t('farmerDash.title')}
+              {profileSetup ? t('fd.overview.welcomeTitle', 'Namaste, {{name}}! 🙏', { name: farmerName }) : t('farmerDash.title', 'Farmer Dashboard')}
             </h1>
             <p className="text-medium text-sm flex items-center gap-2 mt-1">
               {profileSetup ? (
@@ -144,15 +136,14 @@ export default function FarmerDashboard() {
                   {farmLocation} — {farmSize} Acres {cropType}
                 </>
               ) : (
-                t('farmerDash.setupProfile')
+                t('fd.overview.welcomeSubtitle', 'Set up your profile to get started')
               )}
             </p>
           </div>
           <div className="flex items-center gap-3">
             <button
-              onClick={() => window.dispatchEvent(new CustomEvent('kisanbot:open'))}
-              className="p-3 rounded-xl transition-all bg-white text-terracotta shadow-sm hover:shadow-md border border-border hover:bg-terracotta hover:text-white"
-              title="Open KisanBot Voice Assistant"
+              onClick={() => setShowVoice(!showVoice)}
+              className={`p-3 rounded-xl transition-all ${showVoice ? 'bg-terracotta text-white shadow-lg' : 'bg-white text-terracotta shadow-sm hover:shadow-md border border-border'}`}
             >
               <Mic className="w-5 h-5" />
             </button>
@@ -163,10 +154,28 @@ export default function FarmerDashboard() {
               to="/marketplace"
               className="hidden md:inline-flex items-center gap-2 px-5 py-3 bg-terracotta text-white rounded-xl font-semibold hover:bg-terracotta-dark transition-colors shadow-md"
             >
-              <Plus className="w-4 h-4" /> {t('farmerDash.newListing')}
+              <Plus className="w-4 h-4" /> New Listing
             </Link>
           </div>
         </div>
+
+        {/* Voice Assistant */}
+        {showVoice && (
+          <div className="mb-6 bg-gradient-to-r from-terracotta to-terracotta-light rounded-2xl p-6 text-white animate-slide-up">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center animate-pulse-slow">
+                <Mic className="w-7 h-7" />
+              </div>
+              <div>
+                <p className="font-semibold">{t('home.voiceEnabled', 'Voice Assistant Active')}</p>
+                <p className="text-sm text-white/70">Try: "Show pest alerts" or "What's my yield forecast?"</p>
+              </div>
+              <button onClick={() => setShowVoice(false)} className="ml-auto px-4 py-2 bg-white/20 rounded-lg text-sm font-medium hover:bg-white/30 transition-colors">
+                {t('common.close', 'Close')}
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Tabs */}
         <div className="flex gap-2 mb-8 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0">
@@ -194,52 +203,56 @@ export default function FarmerDashboard() {
                 <div className="w-20 h-20 bg-terracotta/10 rounded-full flex items-center justify-center mx-auto mb-4">
                   <User className="w-10 h-10 text-terracotta" />
                 </div>
-                <h2 className="font-heading text-2xl font-bold text-black">{t('fd.setup.title')}</h2>
-                <p className="text-medium text-sm mt-1">{t('fd.setup.subtitle')}</p>
+                <h2 className="font-heading text-2xl font-bold text-black">{t('fd.setup.title', 'Setup Your Farm Profile')}</h2>
+                <p className="text-medium text-sm mt-1">{t('fd.setup.subtitle', 'Fill in your details to get personalized recommendations')}</p>
               </div>
               <div className="space-y-5">
                 <div>
-                  <label className="block text-sm font-medium text-dark mb-2">{t('fd.setup.name')}</label>
-                  <input type="text" value={farmerName} onChange={(e) => setFarmerName(e.target.value)} placeholder="Enter your name" className="w-full px-4 py-3 bg-offwhite border border-border rounded-xl text-sm focus:border-terracotta focus:ring-2 focus:ring-terracotta/15 outline-none transition-all" />
+                  <label className="block text-sm font-medium text-dark mb-2">{t('fd.setup.name', 'Full Name *')}</label>
+                  <input type="text" value={farmerName} onChange={(e) => setFarmerName(e.target.value)} placeholder={t('fd.setup.name', 'Enter your name')} className="w-full px-4 py-3 bg-offwhite border border-border rounded-xl text-sm focus:border-terracotta focus:ring-2 focus:ring-terracotta/15 outline-none transition-all" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-dark mb-2">{t('fd.setup.location')}</label>
-                  <input type="text" value={farmLocation} onChange={(e) => setFarmLocation(e.target.value)} placeholder="Village, District, State" className="w-full px-4 py-3 bg-offwhite border border-border rounded-xl text-sm focus:border-terracotta focus:ring-2 focus:ring-terracotta/15 outline-none transition-all" />
+                  <label className="block text-sm font-medium text-dark mb-2">{t('fd.setup.location', 'Farm Location *')}</label>
+                  <input type="text" value={farmLocation} onChange={(e) => setFarmLocation(e.target.value)} placeholder={t('fd.setup.location', 'Village, District, State')} className="w-full px-4 py-3 bg-offwhite border border-border rounded-xl text-sm focus:border-terracotta focus:ring-2 focus:ring-terracotta/15 outline-none transition-all" />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-dark mb-2">{t('fd.setup.size')}</label>
+                    <label className="block text-sm font-medium text-dark mb-2">{t('fd.setup.size', 'Farm Size (Acres)')}</label>
                     <input type="text" value={farmSize} onChange={(e) => setFarmSize(e.target.value)} placeholder="e.g. 5" className="w-full px-4 py-3 bg-offwhite border border-border rounded-xl text-sm focus:border-terracotta focus:ring-2 focus:ring-terracotta/15 outline-none transition-all" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-dark mb-2">{t('fd.setup.crop')}</label>
+                    <label className="block text-sm font-medium text-dark mb-2">{t('fd.setup.crop', 'Primary Crop')}</label>
                     <select value={cropType} onChange={(e) => setCropType(e.target.value)} className="w-full px-4 py-3 bg-offwhite border border-border rounded-xl text-sm focus:border-terracotta focus:ring-2 focus:ring-terracotta/15 outline-none transition-all appearance-none">
-                      <option value="">{t('fd.setup.select')}</option>
-                      <option value="Wheat">Wheat</option>
-                      <option value="Rice">Rice</option>
-                      <option value="Mustard">Mustard</option>
-                      <option value="Soybean">Soybean</option>
-                      <option value="Chickpea">Chickpea</option>
+                      <option value="">{t('fd.setup.select', 'Select crop')}</option>
+                      <option value="Wheat">{t('marketplaceContext.crops.wheat', 'Wheat')}</option>
+                      <option value="Rice">{t('marketplaceContext.crops.rice', 'Rice')}</option>
+                      <option value="Mustard">{t('marketplaceContext.crops.mustard_gen', 'Mustard')}</option>
+                      <option value="Soybean">{t('marketplaceContext.crops.soybean_gen', 'Soybean')}</option>
+                      <option value="Chickpea">{t('marketplaceContext.crops.chickpea', 'Chickpea')}</option>
                       <option value="Cotton">Cotton</option>
                       <option value="Sugarcane">Sugarcane</option>
                     </select>
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-dark mb-2">{t('fd.setup.lang')}</label>
-                  <select className="w-full px-4 py-3 bg-offwhite border border-border rounded-xl text-sm focus:border-terracotta focus:ring-2 focus:ring-terracotta/15 outline-none transition-all appearance-none">
-                    <option>Hindi</option>
-                    <option>English</option>
-                    <option>Punjabi</option>
-                    <option>Marathi</option>
-                    <option>Tamil</option>
-                    <option>Telugu</option>
-                    <option>Bengali</option>
-                    <option>Gujarati</option>
+                  <label className="block text-sm font-medium text-dark mb-2">{t('fd.setup.lang', 'Preferred Language')}</label>
+                  <select 
+                    value={i18n.language.split('-')[0]} 
+                    onChange={(e) => i18n.changeLanguage(e.target.value)}
+                    className="w-full px-4 py-3 bg-offwhite border border-border rounded-xl text-sm focus:border-terracotta focus:ring-2 focus:ring-terracotta/15 outline-none transition-all appearance-none"
+                  >
+                    <option value="hi">हिन्दी</option>
+                    <option value="en">English</option>
+                    <option value="pa">ਪੰਜਾਬੀ</option>
+                    <option value="mr">मराठी</option>
+                    <option value="ta">தமிழ்</option>
+                    <option value="te">తెలుగు</option>
+                    <option value="bn">বাংলা</option>
+                    <option value="gu">ગુજરાતી</option>
                   </select>
                 </div>
                 <button onClick={handleProfileSave} className="w-full py-4 bg-terracotta text-white font-heading font-bold rounded-xl hover:bg-terracotta-dark transition-all shadow-md text-base">
-                  {t('fd.setup.save')}
+                  {t('fd.setup.save', 'Save & Continue')}
                 </button>
               </div>
             </div>
@@ -252,10 +265,10 @@ export default function FarmerDashboard() {
             {!profileSetup && (
               <div className="bg-gradient-to-r from-terracotta/10 to-amber/10 border-2 border-dashed border-terracotta/30 rounded-2xl p-6 md:p-8 text-center">
                 <User className="w-12 h-12 text-terracotta mx-auto mb-4" />
-                <h3 className="font-heading text-xl font-bold text-black mb-2">{t('fd.overview.welcomeTitle')}</h3>
-                <p className="text-medium text-sm mb-4 max-w-md mx-auto">{t('fd.overview.welcomeSubtitle')}</p>
+                <h3 className="font-heading text-xl font-bold text-black mb-2">{t('fd.overview.welcomeTitle', 'Welcome to KISAN MITRA!')}.</h3>
+                <p className="text-medium text-sm mb-4 max-w-md mx-auto">{t('fd.overview.welcomeSubtitle', 'Set up your farm profile to unlock personalized soil health reports, pest alerts, yield forecasts, and marketplace access.')}</p>
                 <button onClick={() => setActiveTab('profile')} className="px-6 py-3 bg-terracotta text-white rounded-xl font-semibold hover:bg-terracotta-dark transition-colors shadow-md">
-                  {t('fd.overview.welcomeBtn')}
+                  {t('fd.overview.welcomeBtn', 'Setup Farm Profile')}
                 </button>
               </div>
             )}
@@ -263,10 +276,10 @@ export default function FarmerDashboard() {
             {/* Quick Stats */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {[
-                { label: t('fd.stats.yield'), value: profileSetup ? '—' : t('fd.stats.setup'), icon: TrendingUp, bg: 'bg-sage/10', color: 'text-sage' },
-                { label: t('fd.stats.price'), value: profileSetup ? '—' : 'Setup required', icon: BarChart3, bg: 'bg-amber/10', color: 'text-amber' },
-                { label: t('fd.stats.pest'), value: profileSetup ? 'Low' : '—', icon: Bug, bg: 'bg-terracotta/10', color: 'text-terracotta' },
-                { label: t('fd.stats.soil'), value: profileSetup ? '—' : t('fd.stats.connect'), icon: Leaf, bg: 'bg-info/10', color: 'text-info' },
+                { label: t('fd.stats.yield', 'Yield Forecast'), value: profileSetup ? '—' : t('fd.stats.setup', 'Setup required'), icon: TrendingUp, bg: 'bg-sage/10', color: 'text-sage' },
+                { label: t('fd.stats.price', 'Market Price'), value: profileSetup ? '—' : t('fd.stats.setup', 'Setup required'), icon: BarChart3, bg: 'bg-amber/10', color: 'text-amber' },
+                { label: t('fd.stats.pest', 'Pest Risk'), value: profileSetup ? 'Low' : '—', icon: Bug, bg: 'bg-terracotta/10', color: 'text-terracotta' },
+                { label: t('fd.stats.soil', 'Soil Health'), value: profileSetup ? '—' : t('fd.stats.connect', 'Connect sensors'), icon: Leaf, bg: 'bg-info/10', color: 'text-info' },
               ].map((stat, i) => (
                 <div key={i} className="bg-white rounded-2xl p-5 shadow-xs border border-border hover:shadow-sm transition-all group">
                   <div className="flex items-center justify-between mb-3">
@@ -280,110 +293,61 @@ export default function FarmerDashboard() {
               ))}
             </div>
 
-            {/* Weather + AgriMetrics + Alerts */}
+            {/* Weather + Alerts */}
             <div className="grid lg:grid-cols-3 gap-6">
-              <div className="bg-white rounded-2xl p-6 shadow-xs border border-border relative overflow-hidden">
-                <div className="flex items-center justify-between mb-4 relative z-10">
-                  <h3 className="font-heading text-lg font-semibold text-black flex items-center gap-2">
-                    <Sun className="w-5 h-5 text-amber" /> {t('fd.weather.title')}
-                  </h3>
-                  <span className="text-xs font-semibold text-muted bg-offwhite px-2 py-1 flex items-center gap-1 rounded-md"><MapPin className="w-3 h-3 text-terracotta"/> {locationName}</span>
-                </div>
-                
-                {weatherLoading ? (
-                  <div className="flex flex-col items-center justify-center h-32 text-muted relative z-10">
-                    <div className="w-8 h-8 border-4 border-amber border-t-transparent rounded-full animate-spin mb-2"></div>
-                    <p className="text-sm">Connecting to meteorology satellites...</p>
-                  </div>
-                ) : weatherData ? (
-                  <div className="relative z-10">
-                    <div className="flex items-center justify-between mb-6">
-                      <div>
-                        <p className="text-4xl font-heading font-bold text-black">{Math.round(weatherData.current_weather.temperature)}°C</p>
-                        <p className="text-sm text-medium text-muted capitalize mt-1">
-                          {weatherData.current_weather.weathercode <= 3 ? 'Clear / Sunny' : 'Cloudy / Rain'}
-                        </p>
-                      </div>
-                      <Sun className="w-14 h-14 text-amber animate-pulse-slow drop-shadow-md" />
-                    </div>
-
-                    <div className="flex justify-between border-t border-border pt-4">
-                      {weatherData.daily?.time?.slice(0, 5).map((timeStr: string, i: number) => {
-                        const date = new Date(timeStr);
-                        const dayName = i === 0 ? 'Today' : date.toLocaleDateString('en-US', { weekday: 'short' });
-                        const maxTemp = Math.round(weatherData.daily.temperature_2m_max[i]);
-                        const rainProb = Math.round(weatherData.daily.precipitation_probability_max[i] || 0);
-
-                        return (
-                          <div key={i} className={`text-center p-2 rounded-xl transition-all ${i === 0 ? 'bg-amber/10 shadow-inner' : 'hover:bg-offwhite'}`}>
-                            <p className="text-xs text-muted mb-2 font-medium">{dayName}</p>
-                            {rainProb > 40 ? (
-                              <Droplets className="w-5 h-5 mx-auto mb-2 text-info" />
-                            ) : (
-                              <Sun className="w-5 h-5 mx-auto mb-2 text-amber" />
-                            )}
-                            <p className="text-sm font-bold text-black">{maxTemp}°</p>
-                            <p className="text-[10px] text-info font-semibold">{rainProb}% rain</p>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center text-muted p-4">Failed to load weather data</div>
-                )}
-              </div>
-
-              {/* Agri-Metrics Dashboard */}
               <div className="bg-white rounded-2xl p-6 shadow-xs border border-border">
-                <h3 className="font-heading text-lg font-semibold text-black mb-6 flex items-center gap-2">
-                  <Leaf className="w-5 h-5 text-sage" /> Agri-Metrics (Live)
+                <h3 className="font-heading text-lg font-semibold text-black mb-4 flex items-center gap-2">
+                  <Sun className="w-5 h-5 text-amber" /> {t('fd.weather.title', 'Weather Forecast')}
                 </h3>
-                {weatherLoading ? (
-                   <div className="flex flex-col items-center justify-center h-28 text-muted">
-                    <div className="w-8 h-8 border-4 border-sage border-t-transparent rounded-full animate-spin mb-2"></div>
-                  </div>
-                ) : agriData ? (
-                  <div className="space-y-4">
-                    <div className="p-4 bg-sage/5 rounded-xl border border-sage/20 shadow-sm transition-all hover:shadow-md">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-semibold text-dark flex items-center gap-2"><Droplets className="w-4 h-4 text-info"/> Topsoil Moisture</span>
-                        <span className="text-lg font-bold text-sage">{Math.round(agriData.soilMoisture * 100)}%</span>
-                      </div>
-                      <div className="w-full bg-white h-2.5 rounded-full overflow-hidden border border-border">
-                        <div className="bg-gradient-to-r from-info to-sage h-full transition-all duration-1000" style={{ width: `${Math.round(agriData.soilMoisture * 100)}%` }}></div>
-                      </div>
-                      <p className="text-xs text-muted mt-2 font-medium">Optimal 0-1cm depth moisture mapping.</p>
+                <div className="flex justify-between items-center overflow-x-auto pb-2 gap-4">
+                  {weatherLoading ? (
+                    <div className="w-full py-4 text-center text-muted text-sm flex items-center justify-center gap-2">
+                      <div className="w-4 h-4 border-2 border-amber/30 border-t-amber rounded-full animate-spin"></div>
+                      {t('common.loading', 'Fetching local weather...')}
                     </div>
-
-                    <div className="p-4 bg-terracotta/5 rounded-xl border border-terracotta/20 shadow-sm transition-all hover:shadow-md">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-sm font-semibold text-dark flex items-center gap-2"><Sun className="w-4 h-4 text-terracotta"/> Evapotranspiration</span>
-                        <span className="text-lg font-bold text-terracotta">{agriData.et0} <span className="text-xs font-normal">mm/day</span></span>
-                      </div>
-                       <p className="text-xs text-muted mt-1 leading-relaxed">Estimated water lost to evaporation. Plan irrigation accordingly.</p>
+                  ) : locationError ? (
+                    <div className="w-full py-4 text-center text-muted text-xs italic">
+                      {t('fd.weather.noLocation', 'Enable location to see local weather')}
                     </div>
-                  </div>
-                ) : null}
+                  ) : weatherData ? (
+                    weatherData.daily.time.slice(0, 5).map((time: string, i: number) => {
+                      const date = new Date(time);
+                      const dayName = i === 0 ? 'Today' : date.toLocaleDateString(i18n.language, { weekday: 'short' });
+                      const maxTemp = Math.round(weatherData.daily.temperature_2m_max[i]);
+                      const rainProb = weatherData.daily.precipitation_probability_max[i];
+                      
+                      return (
+                        <div key={i} className={`text-center p-3 rounded-xl min-w-[70px] ${i === 0 ? 'bg-amber/10 border border-amber/20' : ''}`}>
+                          <p className="text-[10px] font-medium text-muted mb-2 uppercase">{dayName}</p>
+                          <Sun className={`w-5 h-5 mx-auto mb-2 ${rainProb > 40 ? 'text-info' : 'text-amber'}`} />
+                          <p className="text-sm font-bold text-black">{maxTemp}°C</p>
+                          <p className="text-[10px] font-medium text-info">{rainProb}% 🌧️</p>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="w-full py-4 text-center text-muted text-sm">{t('fd.weather.error', 'Weather unavailable')}</div>
+                  )}
+                </div>
               </div>
 
-              <div className="bg-white rounded-2xl p-6 shadow-xs border border-border">
+              <div className="lg:col-span-2 bg-white rounded-2xl p-6 shadow-xs border border-border">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-heading text-lg font-semibold text-black flex items-center gap-2">
-                    <Bug className="w-5 h-5 text-terracotta" /> {t('fd.pestAlert.title')}
+                    <Bug className="w-5 h-5 text-terracotta" /> {t('fd.pestAlert.title', 'Pest Alerts')}
                   </h3>
                   <button onClick={() => setActiveTab('pest')} className="text-terracotta text-sm font-medium hover:underline flex items-center gap-1">
-                    {t('fd.pestAlert.view')} <ChevronRight className="w-4 h-4" />
+                    {t('fd.pestAlert.view', 'View All')} <ChevronRight className="w-4 h-4" />
                   </button>
                 </div>
                 {profileSetup ? (
                   <div className="space-y-3">
-                    <div className="p-3 bg-offwhite rounded-xl text-center text-muted text-sm">{t('fd.pestAlert.noActive')}</div>
+                    <div className="p-3 bg-offwhite rounded-xl text-center text-muted text-sm">{t('fd.pestAlert.noActive', 'No active pest alerts. Scan your traps to get started.')}</div>
                   </div>
                 ) : (
-                  <div className="p-8 text-center bg-offwhite/50 rounded-xl border border-dashed border-border mt-6">
-                    <Bug className="w-10 h-10 text-muted/50 mx-auto mb-3" />
-                    <p className="text-muted text-sm font-medium">{t('fd.pestAlert.noProfile')}</p>
+                  <div className="p-8 text-center">
+                    <Bug className="w-10 h-10 text-muted mx-auto mb-3" />
+                    <p className="text-muted text-sm">{t('fd.pestAlert.noProfile', 'Setup your profile and scan traps to see pest alerts.')}</p>
                   </div>
                 )}
               </div>
@@ -393,18 +357,18 @@ export default function FarmerDashboard() {
             <div className="bg-white rounded-2xl p-6 shadow-xs border border-border">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-heading text-lg font-semibold text-black flex items-center gap-2">
-                  <Package className="w-5 h-5 text-sage" /> {t('fd.listings.title')}
+                  <Package className="w-5 h-5 text-sage" /> {t('fd.listings.title', 'My Listings')}
                 </h3>
                 <Link to="/marketplace" className="text-terracotta text-sm font-medium hover:underline flex items-center gap-1">
-                  <Plus className="w-4 h-4" /> {t('fd.listings.new')}
+                  <Plus className="w-4 h-4" /> {t('fd.listings.new', 'New Listing')}
                 </Link>
               </div>
               <div className="p-8 text-center border-2 border-dashed border-border rounded-xl">
                 <Package className="w-12 h-12 text-muted mx-auto mb-3" />
-                <h4 className="font-heading text-lg font-semibold text-black mb-2">{t('fd.listings.none')}</h4>
-                <p className="text-muted text-sm mb-4">{t('fd.listings.desc')}</p>
+                <h4 className="font-heading text-lg font-semibold text-black mb-2">{t('fd.listings.none', 'No Listings Yet')}</h4>
+                <p className="text-muted text-sm mb-4">{t('fd.listings.desc', 'Create your first listing to start connecting with verified buyers.')}</p>
                 <Link to="/marketplace" className="inline-flex items-center gap-2 px-6 py-3 bg-terracotta text-white rounded-xl font-semibold hover:bg-terracotta-dark transition-colors">
-                  <Plus className="w-4 h-4" /> {t('fd.listings.create')}
+                  <Plus className="w-4 h-4" /> {t('fd.listings.create', 'Create Listing')}
                 </Link>
               </div>
             </div>
@@ -412,11 +376,11 @@ export default function FarmerDashboard() {
             {/* Transactions */}
             <div className="bg-white rounded-2xl p-6 shadow-xs border border-border">
               <h3 className="font-heading text-lg font-semibold text-black mb-4 flex items-center gap-2">
-                <CreditCard className="w-5 h-5 text-clay" /> {t('fd.transact.recent')}
+                <CreditCard className="w-5 h-5 text-clay" /> Recent Transactions
               </h3>
               <div className="p-8 text-center">
                 <CreditCard className="w-12 h-12 text-muted mx-auto mb-3" />
-                <p className="text-muted text-sm">{t('fd.transact.none')}</p>
+                <p className="text-muted text-sm">Your transactions will appear here once you start selling.</p>
               </div>
             </div>
           </div>
@@ -426,15 +390,15 @@ export default function FarmerDashboard() {
         {activeTab === 'soil' && (
           <div className="space-y-6 animate-fade-in">
             <div className="bg-white rounded-2xl p-6 md:p-8 shadow-xs border border-border">
-              <h3 className="font-heading text-xl font-semibold text-black mb-6">{t('fd.soil.title')}</h3>
+              <h3 className="font-heading text-xl font-semibold text-black mb-6">{t('fd.soil.title', 'Soil Health Monitor')}</h3>
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                 {[
-                  { label: t('fd.soil.ph'), icon: Leaf, placeholder: t('fd.soil.notMeasured'), status: 'pending' },
-                  { label: t('fd.soil.n'), icon: Leaf, placeholder: t('fd.soil.connect'), status: 'pending' },
-                  { label: t('fd.soil.p'), icon: AlertTriangle, placeholder: 'Connect sensor', status: 'pending' },
-                  { label: t('fd.soil.k'), icon: Leaf, placeholder: 'Connect sensor', status: 'pending' },
-                  { label: t('fd.soil.moisture'), icon: Droplets, placeholder: 'Connect sensor', status: 'pending' },
-                  { label: t('fd.soil.temp'), icon: Thermometer, placeholder: 'Connect sensor', status: 'pending' },
+                  { label: t('fd.soil.ph', 'pH Level'), icon: Leaf, placeholder: t('fd.soil.notMeasured', 'Not measured'), status: 'pending' },
+                  { label: t('fd.soil.n', 'Nitrogen (N)'), icon: Leaf, placeholder: t('fd.soil.connect', 'Connect sensor'), status: 'pending' },
+                  { label: t('fd.soil.p', 'Phosphorus (P)'), icon: AlertTriangle, placeholder: t('fd.soil.connect', 'Connect sensor'), status: 'pending' },
+                  { label: t('fd.soil.k', 'Potassium (K)'), icon: Leaf, placeholder: t('fd.soil.connect', 'Connect sensor'), status: 'pending' },
+                  { label: t('fd.soil.moisture', 'Moisture'), icon: Droplets, placeholder: t('fd.soil.connect', 'Connect sensor'), status: 'pending' },
+                  { label: t('fd.soil.temp', 'Temperature'), icon: Thermometer, placeholder: t('fd.soil.connect', 'Connect sensor'), status: 'pending' },
                 ].map((item, i) => (
                   <div key={i} className="rounded-xl p-5 border-2 border-dashed border-border bg-offwhite">
                     <div className="flex items-center justify-between mb-3">
@@ -447,14 +411,14 @@ export default function FarmerDashboard() {
               </div>
               <div className="bg-terracotta/5 border border-terracotta/20 rounded-xl p-6 text-center">
                 <Upload className="w-10 h-10 text-terracotta mx-auto mb-3" />
-                <h4 className="font-heading text-lg font-semibold text-black mb-2">{t('fd.soil.connectTitle')}</h4>
-                <p className="text-medium text-sm mb-4">{t('fd.soil.connectDesc')}</p>
+                <h4 className="font-heading text-lg font-semibold text-black mb-2">{t('fd.soil.connectTitle', 'Connect Sensors or Upload Lab Report')}</h4>
+                <p className="text-medium text-sm mb-4">{t('fd.soil.connectDesc', 'Pair IoT sensors via Bluetooth/LoRa or upload your soil test report to get started.')}</p>
                 <div className="flex flex-col sm:flex-row justify-center gap-3">
                   <button className="px-6 py-3 bg-terracotta text-white rounded-xl font-semibold hover:bg-terracotta-dark transition-colors">
-                    {t('fd.soil.btnPair')}
+                    {t('fd.soil.btnPair', 'Pair Sensor')}
                   </button>
                   <button className="px-6 py-3 bg-white text-terracotta border-2 border-terracotta rounded-xl font-semibold hover:bg-terracotta/5 transition-colors">
-                    {t('fd.soil.btnUpload')}
+                    {t('fd.soil.btnUpload', 'Upload Lab Report')}
                   </button>
                 </div>
               </div>
@@ -465,57 +429,131 @@ export default function FarmerDashboard() {
         {/* PEST TAB */}
         {activeTab === 'pest' && (
           <div className="space-y-6 animate-fade-in">
-            <div className="grid md:grid-cols-2 gap-6">
+            <div className="grid gap-6">
               <div className="bg-white rounded-2xl p-6 shadow-xs border border-border">
-                <h3 className="font-heading text-xl font-semibold text-black mb-4">{t('fd.pest.scanTrap')}</h3>
+                <h3 className="font-heading text-xl font-semibold text-black mb-4">📸 Scan Pheromone Trap</h3>
                 <div className="border-2 border-dashed border-border rounded-xl p-10 text-center hover:border-terracotta hover:bg-terracotta/5 transition-all cursor-pointer">
                   <Bug className="w-12 h-12 text-muted mx-auto mb-4" />
-                  <p className="text-dark font-medium mb-2">{t('fd.pest.uploadTrap')}</p>
-                  <p className="text-sm text-muted mb-4">{t('fd.pest.descTrap')}</p>
+                  <p className="text-dark font-medium mb-2">Upload Trap Photo</p>
+                  <p className="text-sm text-muted mb-4">Take a clear photo of your sticky trap for AI analysis</p>
                   <button className="px-6 py-3 bg-terracotta text-white rounded-xl font-semibold hover:bg-terracotta-dark transition-colors">
-                    {t('fd.pest.btnCamera')}
-                  </button>
-                </div>
-              </div>
-              <div className="bg-white rounded-2xl p-6 shadow-xs border border-border">
-                <h3 className="font-heading text-xl font-semibold text-black mb-4">{t('fd.pest.scanLeaf')}</h3>
-                <div className="border-2 border-dashed border-border rounded-xl p-10 text-center hover:border-sage hover:bg-sage/5 transition-all cursor-pointer">
-                  <Leaf className="w-12 h-12 text-muted mx-auto mb-4" />
-                  <p className="text-dark font-medium mb-2">{t('fd.pest.uploadLeaf')}</p>
-                  <p className="text-sm text-muted mb-4">{t('fd.pest.descLeaf')}</p>
-                  <button className="px-6 py-3 bg-sage text-white rounded-xl font-semibold hover:bg-sage-dark transition-colors">
-                    {t('fd.pest.btnCamera')}
+                    Open Camera
                   </button>
                 </div>
               </div>
             </div>
             <div className="bg-white rounded-2xl p-6 shadow-xs border border-border">
-              <h3 className="font-heading text-xl font-semibold text-black mb-4">{t('fd.pest.history')}</h3>
+              <h3 className="font-heading text-xl font-semibold text-black mb-4">Pest Activity History</h3>
               <div className="p-8 text-center">
                 <Bug className="w-10 h-10 text-muted mx-auto mb-3" />
-                <p className="text-muted text-sm">{t('fd.pest.historyDesc')}</p>
+                <p className="text-muted text-sm">No scans yet. Upload trap or leaf photos to see detection results here.</p>
               </div>
             </div>
           </div>
         )}
 
-        {/* DRONE TAB */}
-        {activeTab === 'drone' && (
+        {/* DISEASE TAB */}
+        {activeTab === 'disease' && (
+          <div className="space-y-6 animate-fade-in max-w-3xl mx-auto">
+            <div className="bg-white rounded-2xl p-6 md:p-8 shadow-xs border border-border">
+              <div className="text-center mb-8">
+                <h3 className="font-heading text-2xl font-bold text-black flex items-center justify-center gap-2">
+                  <Camera className="w-8 h-8 text-sage" /> AI Disease Scanner
+                </h3>
+                <p className="text-medium text-sm mt-2">Upload a photo of a sick leaf, and our AI will identify the disease instantly.</p>
+              </div>
+
+              {!previewUrl ? (
+                <label className="border-2 border-dashed border-border rounded-xl p-12 text-center hover:border-sage hover:bg-sage/5 transition-all cursor-pointer block">
+                  <Upload className="w-12 h-12 text-sage mx-auto mb-4" />
+                  <p className="text-dark font-medium mb-2">{t('fd.pest.uploadLeaf', 'Click to Upload Leaf Photo')}</p>
+                  <p className="text-sm text-muted mb-4">{t('fd.pest.descLeaf', 'Photo of leaf showing symptoms for disease identification')}</p>
+                  <div className="inline-flex px-6 py-3 bg-sage text-white rounded-xl font-semibold hover:bg-sage-dark transition-colors">
+                    {t('fd.pest.btnCamera', 'Choose file')}
+                  </div>
+                  <input type="file" className="hidden" accept="image/*" onChange={handleImageSelect} />
+                </label>
+              ) : (
+                <div className="space-y-6">
+                  <div className="flex justify-center">
+                    <img src={previewUrl} alt="Leaf Preview" className="max-h-64 object-contain rounded-xl border border-border shadow-sm" />
+                  </div>
+                  
+                  <div className="flex justify-center gap-4">
+                    <button 
+                      onClick={() => { setPreviewUrl(null); setSelectedFile(null); setPrediction(null); }}
+                      className="px-6 py-3 bg-white text-dark border border-border rounded-xl font-semibold hover:bg-light transition-colors shadow-sm"
+                    >
+                      Clear Image
+                    </button>
+                    <button 
+                      onClick={uploadAndPredict}
+                      disabled={isPredicting}
+                      className="px-6 py-3 bg-sage text-white rounded-xl font-semibold hover:bg-sage-dark transition-colors shadow-md disabled:bg-sage/50"
+                    >
+                      {isPredicting ? 'Analyzing...' : 'Identify Disease'}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Prediction Results */}
+              {isPredicting && (
+                <div className="mt-8 p-6 bg-sage/5 border border-sage/20 rounded-xl text-center">
+                  <div className="w-10 h-10 border-4 border-sage/30 border-t-sage rounded-full animate-spin mx-auto mb-4"></div>
+                  <p className="font-medium text-sage-dark">Scanning leaf using AI...</p>
+                </div>
+              )}
+
+              {prediction && !isPredicting && (
+                <div className="mt-8 p-6 bg-white border border-border rounded-xl shadow-sm border-l-4 border-l-terracotta text-left">
+                  <h4 className="font-heading text-lg font-bold text-black mb-1">Analysis Complete</h4>
+                  
+                  <div className="mt-4 bg-terracotta/5 p-4 rounded-xl border border-terracotta/20">
+                    <p className="text-sm text-muted mb-1">Detected Issue:</p>
+                    <p className="font-heading text-2xl font-bold text-terracotta">{prediction.disease_name.replace(/_/g, ' ')}</p>
+                  </div>
+
+                  <div className="mt-6 mb-2">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm font-medium">AI Confidence Score</span>
+                      <span className="text-sm font-bold text-sage-dark">{(prediction.confidence).toFixed(2)}%</span>
+                    </div>
+                    <div className="w-full bg-light rounded-full h-2.5">
+                      <div className="bg-sage h-2.5 rounded-full" style={{ width: `${Math.min(100, prediction.confidence)}%` }}></div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* SCHEMES TAB */}
+        {activeTab === 'schemes' && (
           <div className="space-y-6 animate-fade-in">
             <div className="bg-white rounded-2xl p-6 md:p-8 shadow-xs border border-border">
-              <h3 className="font-heading text-xl font-semibold text-black mb-6">{t('fd.drone.title')}</h3>
-              <div className="bg-offwhite rounded-xl p-6 text-center">
-                <img src="https://images.unsplash.com/photo-1508444845599-5c89863b1c44?w=600&q=80" alt="Drone" className="w-full h-48 object-cover rounded-xl mb-6" />
-                <h4 className="font-heading text-lg font-semibold text-black mb-2">{t('fd.drone.none')}</h4>
-                <p className="text-medium text-sm mb-6 max-w-md mx-auto">{t('fd.drone.desc')}</p>
-                <div className="flex flex-col sm:flex-row justify-center gap-3">
-                  <button className="px-6 py-3 bg-info text-white rounded-xl font-semibold hover:bg-info/90 transition-colors flex items-center justify-center gap-2">
-                    <Plane className="w-5 h-5" /> {t('fd.drone.btnPair')}
-                  </button>
-                  <button className="px-6 py-3 bg-white text-info border-2 border-info rounded-xl font-semibold hover:bg-info/5 transition-colors">
-                    {t('fd.drone.btnBook')}
-                  </button>
-                </div>
+              <h3 className="font-heading text-xl font-semibold text-black mb-6">Government Schemes Finder</h3>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[
+                  { name: 'PM Kisan Samman Nidhi', desc: '₹6,000/year direct income support for eligible farmers.', tag: 'Income Support', color: 'bg-emerald-50 border-emerald-200' },
+                  { name: 'Kisan Credit Card (KCC)', desc: 'Low-interest credit for crop inputs, equipment and emergencies.', tag: 'Credit', color: 'bg-blue-50 border-blue-200' },
+                  { name: 'PM Fasal Bima Yojana', desc: 'Crop insurance against drought, flood and pest damage.', tag: 'Insurance', color: 'bg-amber-50 border-amber-200' },
+                  { name: 'Soil Health Card', desc: 'Free soil testing and fertilizer recommendation by government labs.', tag: 'Soil', color: 'bg-sage/10 border-sage/30' },
+                  { name: 'eNAM', desc: 'Sell crops at best mandi prices through the national digital marketplace.', tag: 'Marketplace', color: 'bg-terracotta/10 border-terracotta/30' },
+                  { name: 'Fertilizer Subsidy', desc: 'Subsidised urea, DAP and other inputs via PM PRANAM scheme.', tag: 'Input Support', color: 'bg-purple-50 border-purple-200' },
+                ].map((scheme, i) => (
+                  <div key={i} className={`rounded-xl p-5 border ${scheme.color} flex flex-col gap-3`}>
+                    <div className="flex items-start justify-between gap-2">
+                      <h4 className="font-heading font-semibold text-black text-sm leading-snug">{scheme.name}</h4>
+                      <span className="text-xs px-2 py-0.5 bg-white/70 rounded-full border border-border text-medium shrink-0">{scheme.tag}</span>
+                    </div>
+                    <p className="text-medium text-xs leading-relaxed flex-1">{scheme.desc}</p>
+                    <button className="w-full py-2 bg-emerald-600 text-white text-xs font-semibold rounded-lg hover:bg-emerald-700 transition-colors flex items-center justify-center gap-1.5">
+                      <BookOpen className="w-3.5 h-3.5" /> Check Eligibility
+                    </button>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -525,24 +563,24 @@ export default function FarmerDashboard() {
         {activeTab === 'market' && (
           <div className="space-y-6 animate-fade-in">
             <div className="bg-white rounded-2xl p-6 shadow-xs border border-border">
-              <h3 className="font-heading text-xl font-semibold text-black mb-4">{t('fd.market.title')}</h3>
+              <h3 className="font-heading text-xl font-semibold text-black mb-4">{t('fd.market.title', 'Your Marketplace')}</h3>
               <div className="p-8 text-center border-2 border-dashed border-border rounded-xl">
                 <ShoppingCart className="w-12 h-12 text-muted mx-auto mb-3" />
-                <h4 className="font-heading text-lg font-semibold text-black mb-2">{t('fd.market.start')}</h4>
-                <p className="text-muted text-sm mb-4 max-w-md mx-auto">{t('fd.market.desc')}</p>
+                <h4 className="font-heading text-lg font-semibold text-black mb-2">{t('fd.market.start', 'Start Selling')}</h4>
+                <p className="text-muted text-sm mb-4 max-w-md mx-auto">{t('fd.market.desc', 'Create listings for your produce, compare buyer offers, and sell at the best price with escrow protection.')}</p>
                 <Link to="/marketplace" className="inline-flex items-center gap-2 px-6 py-3 bg-terracotta text-white rounded-xl font-semibold hover:bg-terracotta-dark transition-colors">
-                  <Plus className="w-4 h-4" /> Create Listing
+                  <Plus className="w-4 h-4" /> {t('fd.listings.create', 'Create Listing')}
                 </Link>
               </div>
             </div>
             <div className="bg-white rounded-2xl p-6 shadow-xs border border-border">
-              <h3 className="font-heading text-xl font-semibold text-black mb-4">{t('fd.market.trends')}</h3>
-              <p className="text-muted text-sm mb-4">{t('fd.market.trendsDesc')}</p>
+              <h3 className="font-heading text-xl font-semibold text-black mb-4">{t('fd.market.trends', 'Price Trends')}</h3>
+              <p className="text-muted text-sm mb-4">{t('fd.market.trendsDesc', 'Select your crop to see current prices and forecasts.')}</p>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 {['Wheat', 'Rice', 'Mustard', 'Soybean'].map((crop) => (
                   <button key={crop} className="p-4 bg-offwhite border border-border rounded-xl text-center hover:border-terracotta hover:bg-terracotta/5 transition-all">
-                    <p className="text-sm font-semibold text-black">{crop}</p>
-                    <p className="text-xs text-muted mt-1">{t('fd.market.viewPrices')}</p>
+                    <p className="text-sm font-semibold text-black">{t(`marketplaceContext.crops.${crop.toLowerCase()}`, crop)}</p>
+                    <p className="text-xs text-muted mt-1">{t('fd.market.viewPrices', 'View prices')}</p>
                   </button>
                 ))}
               </div>
@@ -555,26 +593,26 @@ export default function FarmerDashboard() {
           <div className="space-y-6 animate-fade-in">
             <div className="grid md:grid-cols-3 gap-4">
               <div className="bg-white rounded-2xl p-6 shadow-xs border border-border text-center">
-                <p className="text-sm text-muted">{t('fd.transactTab.earnings')}</p>
+                <p className="text-sm text-muted">{t('fd.transactTab.earnings', 'Total Earnings')}</p>
                 <p className="font-heading text-3xl font-bold text-black mt-2">₹0</p>
-                <p className="text-xs text-muted mt-1">{t('fd.transactTab.season')}</p>
+                <p className="text-xs text-muted mt-1">{t('fd.transactTab.season', 'This season')}</p>
               </div>
               <div className="bg-white rounded-2xl p-6 shadow-xs border border-border text-center">
-                <p className="text-sm text-muted">{t('fd.transactTab.score')}</p>
+                <p className="text-sm text-muted">{t('fd.transactTab.score', 'Farmer Score')}</p>
                 <p className="font-heading text-3xl font-bold text-amber mt-2">—</p>
-                <p className="text-xs text-muted mt-1">{t('fd.transactTab.scoreDesc')}</p>
+                <p className="text-xs text-muted mt-1">{t('fd.transactTab.scoreDesc', 'Complete sales to build score')}</p>
               </div>
               <div className="bg-white rounded-2xl p-6 shadow-xs border border-border text-center">
-                <p className="text-sm text-muted">{t('fd.transactTab.orders')}</p>
+                <p className="text-sm text-muted">{t('fd.transactTab.orders', 'Completed Orders')}</p>
                 <p className="font-heading text-3xl font-bold text-black mt-2">0</p>
-                <p className="text-xs text-muted mt-1">{t('fd.transactTab.disputes')}</p>
+                <p className="text-xs text-muted mt-1">{t('fd.transactTab.disputes', 'No disputes')}</p>
               </div>
             </div>
             <div className="bg-white rounded-2xl p-6 shadow-xs border border-border">
-              <h3 className="font-heading text-xl font-semibold text-black mb-4">{t('fd.transactTab.history')}</h3>
+              <h3 className="font-heading text-xl font-semibold text-black mb-4">{t('fd.transactTab.history', 'Transaction History')}</h3>
               <div className="p-8 text-center">
                 <CreditCard className="w-12 h-12 text-muted mx-auto mb-3" />
-                <p className="text-muted text-sm">{t('fd.transactTab.none')}</p>
+                <p className="text-muted text-sm">{t('fd.transactTab.none', 'No transactions yet. Start selling to see your payment history and Farmer Score.')}</p>
               </div>
             </div>
           </div>

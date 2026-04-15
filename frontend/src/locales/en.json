@@ -30,7 +30,7 @@
   "home": {
     "heroTitle1": "Smart Farming.",
     "heroTitle2": "Better Yields.",
-    "heroSubtitle": "Empowering Indian farmers with AI-driven insights, IoT monitoring, and a direct marketplace to sell produce at the best prices.",
+    "heroSubtitle": "Empowering Indian farmers with AI-driven disease detection, IoT soil monitoring, and a direct marketplace to sell produce at the best prices.",
     "startFarming": "Start Farming Smarter",
     "howItWorks": "See How it Works",
     "stats": {
@@ -54,16 +54,16 @@
         "m2": "Community outbreak alerts",
         "m3": "Treatment guidance"
       },
-      "drone": {
-        "title": "Drone Crop Health & Irrigation",
-        "desc": "Autonomous drone flight paths using plot boundaries. NDVI/NDRE maps identify stress zones for targeted action.",
-        "m1": "Precision intervention maps",
-        "m2": "30-min processing",
-        "m3": "Targeted spraying guidance"
+      "schemes": {
+        "title": "Government Schemes Finder",
+        "desc": "Access all central and state government schemes you're eligible for — PM Kisan, KCC, insurance and subsidies.",
+        "m1": "50+ schemes covered",
+        "m2": "Instant eligibility check",
+        "m3": "Direct application links"
       },
       "yield": {
         "title": "Yield Prediction & Marketplace",
-        "desc": "AI combines soil + pest + drone + weather data to forecast yields and market prices. Connect directly with buyers.",
+        "desc": "AI combines soil + pest + weather data to forecast yields and market prices. Connect directly with buyers.",
         "m1": "15-20% MAPE accuracy",
         "m2": "Real-time price forecasts",
         "m3": "Direct buyer connections"
@@ -82,8 +82,8 @@
         "desc": "Create profile, draw boundaries on map, connect IoT sensors — all in minutes."
       },
       "2": {
-        "title": "Get AI Insights",
-        "desc": "Receive soil reports, pest alerts, drone maps, yield forecasts, and fertilizer plans."
+        "title": "Government Schemes Finder",
+        "desc": "Receive soil reports, pest alerts, disease identification, yield forecasts, and fertilizer plans."
       },
       "3": {
         "title": "Sell Smart",
@@ -105,11 +105,56 @@
     "exploreModule": "Explore Module",
     "advantage": "Our Advantage",
     "flywheelTitle": "The Data Flywheel Effect",
-    "flywheelSubtitle": "Each season of data makes the entire platform smarter for everyone."
+    "flywheelSubtitle": "Each season of data makes the entire platform smarter for everyone.",
+    "heroSaathi": "Saathi",
+    "heroInField": "in the Field",
+    "heroBadge": "IoT + AI + Marketplace for Indian Agriculture",
+    "heroTitle": "Your Digital {{saathi}} {{inField}}",
+    "heroDesc": "From soil testing to selling produce — empowering Indian farmers with precision farming, AI disease detection, and a secure marketplace.",
+    "journeyTitle": "A Full Season Journey — With You",
+    "journeySubtitle": "KISAN MITRA guides farmers through every phase of the crop cycle, from sowing decisions to post-harvest sales.",
+    "journeyPhases": {
+      "preSowing": { "title": "Pre-Sowing", "desc": "Install soil sensors → view pH/NPK report → buy recommended fertilizer through marketplace." },
+      "emergence": { "title": "Emergence", "desc": "Scan pheromone traps weekly → receive outbreak alerts → apply recommended treatments." },
+      "midSeason": { "title": "Mid-Season", "desc": "Check eligible government schemes → apply for PM Kisan, KCC or crop insurance → get subsidy directly in bank account." },
+      "preHarvest": { "title": "Pre-Harvest", "desc": "View yield estimate + price forecast → compare buyers → list crop at best price." },
+      "sale": { "title": "Sale", "desc": "Accept best offer → escrow contract created → pickup scheduled → quality verified → instant UPI payout." }
+    },
+    "flywheelItems": {
+      "data": { "title": "Soil & Pest Data", "desc": "IoT sensors and AI scans feed real-time soil health and pest outbreak data into the platform" },
+      "schemes": { "title": "Scheme Eligibility", "desc": "Farmer profiles unlock personalised government scheme recommendations and subsidy access" },
+      "predictions": { "title": "Better Predictions", "desc": "Accurate yield and price forecasts drive fair pricing and buyer confidence" },
+      "adoption": { "title": "More Adoption", "desc": "More users → more data → smarter AI and better outcomes next season" }
+    },
+    "buyerSection": {
+      "badge": "For Buyers & Procurement Teams",
+      "title": "Procurement Intelligence, Not Just Trading",
+      "subtitle": "Predictive supply insights, verified quality data, and full farmer reliability.",
+      "exploreBtn": "Explore Buyer Dashboard",
+      "features": {
+        "forecast": { "title": "Supply Forecast Dashboard", "desc": "Regional yield predictions 4–6 weeks before harvest." },
+        "quality": { "title": "Verified Quality Data", "desc": "Soil history, pest records, and Farmer Score." },
+        "checks": { "title": "Digital Quality Checks", "desc": "Moisture, grade, foreign matter with photo evidence." },
+        "trace": { "title": "Full Lot Traceability", "desc": "Farm-to-buyer passport for compliance & export readiness." },
+        "escrow": { "title": "Secure Escrow Payments", "desc": "Funds held until quality confirmed. Automated release." },
+        "logistics": { "title": "Logistics Integration", "desc": "Schedule pickups, track shipments, verification codes." }
+      }
+    },
+    "readyToTransform": "Ready to Transform Your Farm?",
+    "transformDesc": "Set up your profile, connect sensors, and start getting AI-driven recommendations today.",
+    "startJourney": "Start Your Journey",
+    "learnMore": "Learn More",
+    "readyToTransformTitle": "Ready to Transform Agriculture?",
+    "readyToTransformSubtitle": "Join thousands of farmers and buyers already using KISAN MITRA to grow better, sell smarter, and build trust.",
+    "getStartedFree": "Get Started Free",
+    "exploreFeatures": "Explore Features",
+    "demoSoon": "Demo Coming Soon",
+    "demoDesc": "Our platform walkthrough is being prepared.",
+    "close": "Close"
   },
   "marketplace": {
     "title": "KISAN MITRA Marketplace",
-    "subtitle": "Browse verified farm listings with quality data, drone maps, and Farmer Score.",
+    "subtitle": "Browse verified farm listings with quality data, pest records, and Farmer Score.",
     "searchPlaceholder": "Search crops, locations...",
     "filters": "Filters",
     "priceLow": "Price: Low → High",
@@ -130,7 +175,7 @@
       "overview": "Overview",
       "soil": "Soil Health",
       "pest": "Pest Monitor",
-      "drone": "Drone Scan",
+      "schemes": "Government Schemes",
       "market": "Marketplace",
       "transactions": "Transactions",
       "profile": "Profile"
@@ -158,7 +203,15 @@
     "builtForSubtitle": "Accessibility, security, and intelligence designed for real-world conditions.",
     "ctaTitle": "Start Using KISAN MITRA Today",
     "ctaSubtitle": "Set up your farm profile and begin receiving AI-powered recommendations in minutes.",
-    "browseMarketplace": "Browse Marketplace"
+    "browseMarketplace": "Browse Marketplace",
+    "offlineMode": {
+      "title": "Offline Mode",
+      "desc": "Core features work without internet. Sync when connected."
+    },
+    "privacy": {
+      "title": "Data Privacy",
+      "desc": "End-to-end encryption. You control what buyers see."
+    }
   },
   "marketplaceContext": {
     "farmer": "Available Farmer",
@@ -269,12 +322,12 @@
       "history": "Pest Activity History",
       "historyDesc": "No scans yet. Upload trap or leaf photos to see detection results here."
     },
-    "drone": {
-      "title": "Drone Scan — Crop Health",
-      "none": "No Drone Scans Yet",
-      "desc": "Pair your drone and define plot boundaries to generate autonomous flight paths and NDVI health maps.",
-      "btnPair": "Pair Drone",
-      "btnBook": "Book Drone-as-a-Service"
+    "schemes": {
+      "title": "Government Schemes & Subsidies",
+      "none": "No Schemes Applied Yet",
+      "desc": "Check your eligibility for central and state schemes like PM-Kisan, KCC, and soil health subsidies.",
+      "btnCheck": "Check Eligibility",
+      "btnBook": "Apply for Scheme"
     },
     "market": {
       "title": "Your Marketplace",
@@ -323,7 +376,7 @@
       "listTitle": "Available Listings",
       "browseAll": "Browse All",
       "browseMarket": "Browse the Marketplace",
-      "marketDesc": "Find verified farmer listings with quality data, drone maps, and Farmer Scores."
+      "marketDesc": "Find verified farmer listings with quality data, pest records, and Farmer Scores."
     },
     "stats": {
       "alerts": "Active Alerts",
@@ -361,7 +414,7 @@
       "title": "Lot Traceability",
       "subtitle": "Complete farm-to-buyer history for compliance and export readiness.",
       "none": "No Traceability Records",
-      "desc": "Once you complete a purchase, a full lot passport will be generated with soil, pest, drone, and quality data."
+      "desc": "Once you complete a purchase, a full lot passport will be generated with soil, pest, and quality data."
     }
   }
 }

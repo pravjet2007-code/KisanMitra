@@ -2,25 +2,21 @@ import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, Sprout, ChevronDown, Globe } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useAuth } from '../context/AuthContext';
+
+const navLinks = [
+  { label: 'Home', path: '/' },
+  { label: 'Features', path: '/features' },
+  { label: 'Marketplace', path: '/marketplace' },
+  {
+    label: 'Dashboards',
+    children: [
+      { label: 'Farmer Dashboard', path: '/farmer-dashboard' },
+      { label: 'Buyer Dashboard', path: '/buyer-dashboard' },
+    ],
+  },
+];
 
 export default function Navbar() {
-  const { t, i18n } = useTranslation();
-  const { token } = useAuth();
-
-  const navLinks = [
-    { label: t('nav.home'), path: '/' },
-    { label: t('nav.features'), path: '/features' },
-    { label: t('nav.marketplace'), path: '/marketplace' },
-    {
-      label: t('nav.dashboards'),
-      children: [
-        { label: t('nav.farmerDashboard'), path: '/farmer-dashboard' },
-        { label: t('nav.buyerDashboard'), path: '/buyer-dashboard' },
-      ],
-    },
-  ];
-
   const [scrolled, setScrolled] = useState(false);
   const [visible, setVisible] = useState(true);
   const [lastY, setLastY] = useState(0);
@@ -28,6 +24,7 @@ export default function Navbar() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const location = useLocation();
   const isHome = location.pathname === '/';
+  const { t, i18n } = useTranslation();
 
   useEffect(() => {
     const onScroll = () => {
@@ -133,7 +130,7 @@ export default function Navbar() {
               <div className="relative group ml-2">
                 <button className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${scrolled || !isHome ? 'text-black hover:bg-black/5' : 'text-white hover:bg-white/10'}`}>
                   <Globe className="w-4 h-4" />
-                  <span className="uppercase">{i18n.language.split('-')[0]}</span>
+                  <span className="uppercase">{i18n.language ? i18n.language.split('-')[0] : 'EN'}</span>
                   <ChevronDown className="w-3.5 h-3.5" />
                 </button>
                 <div className="absolute top-full right-0 pt-2 w-[140px] opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-200 translate-y-2 group-hover:translate-y-0">
@@ -152,7 +149,7 @@ export default function Navbar() {
                         key={lang.code}
                         onClick={() => i18n.changeLanguage(lang.code)}
                         className={`w-full text-left px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                          i18n.language === lang.code || i18n.language.startsWith(lang.code)
+                          i18n.language === lang.code || i18n.language?.startsWith(lang.code)
                             ? 'bg-terracotta/10 text-terracotta'
                             : 'text-dark hover:bg-light hover:text-terracotta'
                         }`}
@@ -165,10 +162,10 @@ export default function Navbar() {
               </div>
 
               <Link
-                to={token ? "/farmer-dashboard" : "/login"}
+                to="/farmer-dashboard"
                 className="hidden md:inline-flex items-center px-5 py-2.5 bg-terracotta text-white text-sm font-semibold rounded-xl hover:bg-terracotta-dark transition-all shadow-md hover:shadow-lg"
               >
-                {t('nav.getStarted')}
+                Get Started
               </Link>
               <button
                 onClick={() => setMobileOpen(!mobileOpen)}
@@ -227,48 +224,48 @@ export default function Navbar() {
                 )
               )}
             </div>
-              {/* Mobile Language Switcher */}
-              <div className="mt-4 border-t border-border pt-4">
-                <p className="px-4 py-2 text-xs font-semibold text-muted uppercase tracking-wider">
-                  {t('nav.selectLanguage')}
-                </p>
-                <div className="grid grid-cols-2 gap-2 px-2">
-                  {[
-                    { code: 'en', label: 'English' },
-                    { code: 'hi', label: 'हिन्दी' },
-                    { code: 'mr', label: 'मराठी' },
-                    { code: 'pa', label: 'ਪੰਜਾਬੀ' },
-                    { code: 'gu', label: 'ગુજરાતી' },
-                    { code: 'ta', label: 'தமிழ்' },
-                    { code: 'te', label: 'తెలుగు' },
-                    { code: 'bn', label: 'বাংলা' }
-                  ].map((lang) => (
-                    <button
-                      key={lang.code}
-                      onClick={() => {
-                        i18n.changeLanguage(lang.code);
-                        setMobileOpen(false);
-                      }}
-                      className={`px-4 py-3 text-sm font-medium rounded-xl transition-colors ${
-                        i18n.language === lang.code || i18n.language.startsWith(lang.code)
-                          ? 'bg-terracotta/10 text-terracotta'
-                          : 'bg-light text-dark hover:bg-terracotta/5'
-                      }`}
-                    >
-                      {lang.label}
-                    </button>
-                  ))}
-                </div>
+            {/* Mobile Language Switcher */}
+            <div className="mt-4 border-t border-border pt-4">
+              <p className="px-4 py-2 text-xs font-semibold text-muted uppercase tracking-wider">
+                {t('nav.selectLanguage', 'Select Language')}
+              </p>
+              <div className="grid grid-cols-2 gap-2 px-2">
+                {[
+                  { code: 'en', label: 'English' },
+                  { code: 'hi', label: 'हिन्दी' },
+                  { code: 'mr', label: 'मराठी' },
+                  { code: 'pa', label: 'ਪੰਜਾਬੀ' },
+                  { code: 'gu', label: 'ગુજરાતી' },
+                  { code: 'ta', label: 'தமிழ்' },
+                  { code: 'te', label: 'తెలుగు' },
+                  { code: 'bn', label: 'বাংলা' }
+                ].map((lang) => (
+                  <button
+                    key={lang.code}
+                    onClick={() => {
+                      i18n.changeLanguage(lang.code);
+                      setMobileOpen(false);
+                    }}
+                    className={`px-4 py-3 text-sm font-medium rounded-xl transition-colors ${
+                      i18n.language === lang.code || i18n.language?.startsWith(lang.code)
+                        ? 'bg-terracotta/10 text-terracotta'
+                        : 'bg-light text-dark hover:bg-terracotta/5'
+                    }`}
+                  >
+                    {lang.label}
+                  </button>
+                ))}
               </div>
+            </div>
 
-              <div className="mt-6">
-                <Link
-                  to={token ? "/farmer-dashboard" : "/login"}
-                  className="block w-full py-4 bg-terracotta text-white text-center font-semibold rounded-xl hover:bg-terracotta-dark transition-colors"
-                >
-                  {t('nav.getStarted')}
-                </Link>
-              </div>
+            <div className="mt-6">
+              <Link
+                to="/farmer-dashboard"
+                className="block w-full py-4 bg-terracotta text-white text-center font-semibold rounded-xl hover:bg-terracotta-dark transition-colors"
+              >
+                Get Started
+              </Link>
+            </div>
           </div>
         </div>
       )}

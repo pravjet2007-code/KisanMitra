@@ -1,9 +1,0 @@
-fastapi
-uvicorn
-sqlalchemy
-pyjwt
-pydantic
-python-multipart
-# For SQLAlchemy if they switch to MySQL later:
-# pymysql
-# cryptography

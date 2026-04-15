@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  Star, MapPin, CheckCircle2, Users, Leaf, Bug, Plane,
+  Star, MapPin, CheckCircle2, Users, Leaf, Bug, Microscope,
   Droplets, Shield, CreditCard, Truck,
   ArrowLeft, MessageSquare, Calendar, Package, TrendingUp,
   ChevronRight, Download, Phone
@@ -40,7 +40,7 @@ export default function ListingDetail() {
                     <CheckCircle2 className="w-3.5 h-3.5" /> Verified
                   </span>
                   <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-white/20 rounded-full text-xs text-white backdrop-blur-sm">
-                    <Plane className="w-3.5 h-3.5" /> Drone Data
+                    <Microscope className="w-3.5 h-3.5" /> Soil Report
                   </span>
                 </div>
                 <div className="absolute bottom-4 left-6">
