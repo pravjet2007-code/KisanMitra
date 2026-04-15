@@ -63,7 +63,7 @@ homeContent = homeContent.replace(`desc: 'List produce, compare buyer offers, an
 
 // Replace loose text nodes
 homeContent = homeContent.replace(`<span>Voice Supported</span>`, `<span>{t('home.voiceSupported')}</span>`);
-homeContent = homeContent.replace(`<span>22 Languages</span>`, `<span>{t('home.languages')}</span>`);
+homeContent = homeContent.replace(`<span>08 Languages</span>`, `<span>{t('home.languages')}</span>`);
 homeContent = homeContent.replace(`<span>Secure Payments</span>`, `<span>{t('home.securePayments')}</span>`);
 homeContent = homeContent.replace(`Join as Buyer`, `{t('home.joinBuyer')}`);
 homeContent = homeContent.replace(`Watch Demo`, `{t('home.watchDemo')}`);
@@ -136,7 +136,7 @@ enData.home = {
     "3": { "title": "Sell Smart", "desc": "List produce, compare buyer offers, and get paid securely via escrow with UPI." }
   },
   "voiceSupported": "Voice Supported",
-  "languages": "22 Languages",
+  "languages": "08 Languages",
   "securePayments": "Secure Payments",
   "joinBuyer": "Join as Buyer",
   "watchDemo": "Watch Demo",

@@ -90,7 +90,7 @@ const features = [
 ];
 
 const platformFeatures = [
-  { icon: Globe, title: '22 Languages', desc: 'Full UI and content in all scheduled Indian languages.' },
+  { icon: Globe, title: '08 Languages', desc: 'Full UI and content in all scheduled Indian languages.' },
   { icon: Mic, title: 'Voice Interface', desc: 'Speak commands in your language for hands-free operation.' },
   { icon: Smartphone, title: 'Offline Mode', desc: 'Core features work without internet. Sync when connected.' },
   { icon: Lock, title: 'Data Privacy', desc: 'End-to-end encryption. You control what buyers see.' },

@@ -27,7 +27,7 @@ export default function HomePage() {
     { value: '50K+', label: t('home.stats.farmers'), icon: Users },
     { value: '5,000+', label: t('home.stats.buyers'), icon: ShoppingCart },
     { value: '₹500 Cr', label: t('home.stats.gmv'), icon: CircleDollarSign },
-    { value: '22', label: t('home.stats.languages'), icon: Globe },
+    { value: '08', label: t('home.stats.languages'), icon: Globe },
   ];
 
   const modules = [

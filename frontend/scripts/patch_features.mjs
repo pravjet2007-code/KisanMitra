@@ -88,7 +88,7 @@ content = content.replace(`capabilities: [
     ],`, `capabilities: [t('featuresC.transact.c1'), t('featuresC.transact.c2'), t('featuresC.transact.c3'), t('featuresC.transact.c4'), t('featuresC.transact.c5'), t('featuresC.transact.c6')],`);
 
 // Platform Features Array
-content = content.replace(`title: '22 Languages'`, `title: t('featuresC.plat.lang.t')`);
+content = content.replace(`title: '08 Languages'`, `title: t('featuresC.plat.lang.t')`);
 content = content.replace(`desc: 'Full UI and content in all scheduled Indian languages.'`, `desc: t('featuresC.plat.lang.d')`);
 content = content.replace(`title: 'Voice Interface'`, `title: t('featuresC.plat.voice.t')`);
 content = content.replace(`desc: 'Speak commands in your language for hands-free operation.'`, `desc: t('featuresC.plat.voice.d')`);
@@ -171,7 +171,7 @@ enData.featuresC = {
     "c6": "Full transaction history & audit trail"
   },
   "plat": {
-    "lang": { "t": "22 Languages", "d": "Full UI and content in all scheduled Indian languages." },
+    "lang": { "t": "08 Languages", "d": "Full UI and content in all scheduled Indian languages." },
     "voice": { "t": "Voice Interface", "d": "Speak commands in your language for hands-free operation." },
     "offline": { "t": "Offline Mode", "d": "Core features work without internet. Sync when connected." },
     "priv": { "t": "Data Privacy", "d": "End-to-end encryption. You control what buyers see." },
