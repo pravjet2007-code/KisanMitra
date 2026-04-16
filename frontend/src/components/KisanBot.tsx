@@ -16,17 +16,92 @@ const LANGUAGES = [
 ];
 
 const WELCOME_MESSAGES: Record<string, string> = {
-  'hi-IN': 'Namaste Kisan Bhai! 🙏 Main KisanBot hoon, aapka krishi sahayak. Aap mujhse fasal, keede, mitti, mandi bhav ya sarkari yojanaon ke baare mein pooch sakte hain.',
-  'en-IN': 'Namaste Farmer! 🙏 I am KisanBot, your agriculture assistant. You can ask me about crops, pests, soil health, market prices, or government schemes.',
+  'hi-IN': 'Namaste Kisan Bhai! 🙏 Main KisanBot hoon, aapka krishi sahayak. Fasal, keede, mitti, mandi bhav ya sarkari yojanaon ke baare mein pooch sakte hain.',
+  'en-IN': 'Hello Farmer! 🙏 I am KisanBot, your AI agriculture assistant. Ask me about crops, pests, soil health, market prices, or government schemes.',
   'pa-IN': 'Sat Sri Akal Kisan Bhai! 🙏 Main KisanBot haan, teri kheti vich madad karn lai haazir haan.',
-  'mr-IN': 'Namaskar Shetkari Bhai! 🙏 Mi KisanBot aahe, tumcha krishi sahayak. Pik, kide, mati, bajar bhav yavishayi vicharaa.',
-  'ta-IN': 'Vanakkam Vivasayi! 🙏 Naan KisanBot, ungal vivasaya unavalar. Payir, pootchi, mann, selaviruvila pattri kelunga.',
-  'te-IN': 'Namaskaramandi Rythu! 🙏 Nenu KisanBot, meeru pantalu, pandlu, nela, maarkettu garinchi naannu adugavachu.',
-  'bn-IN': 'Namaskar Krishak Bhai! 🙏 Ami KisanBot, apnar krishi sahayak. Ful, keedapoka, mati, bajar dam bishaye jigyesh korun.',
-  'gu-IN': 'Jai Jai Garavi Gujarat! 🙏 Hu KisanBot chhu, tamaro krishi sahayak. Piko, jivat, jamin, bajar bhav vise poochho.',
+  'mr-IN': 'Namaskar Shetkari Bhai! 🙏 Mi KisanBot aahe, tumcha krishi sahayak.',
+  'ta-IN': 'Vanakkam Vivasayi! 🙏 Naan KisanBot, ungal vivasaya unavalar.',
+  'te-IN': 'Namaskaramandi Rythu! 🙏 Nenu KisanBot, meeru pantalu, maarkettu garinchi adugavachu.',
+  'bn-IN': 'Namaskar Krishak Bhai! 🙏 Ami KisanBot, apnar krishi sahayak.',
+  'gu-IN': 'Jai Jai Garavi Gujarat! 🙏 Hu KisanBot chhu, tamaro krishi sahayak.',
 };
 
-// Type shims for Web Speech API (not fully typed in TypeScript dom lib)
+// UI strings per language
+const UI_STRINGS: Record<string, {
+  placeholder: string;
+  listening: string;
+  loading: string;
+  stop: string;
+  subtext: string;
+  listenIcon: string;
+}> = {
+  'en-IN': {
+    placeholder: 'Type or use the mic to speak...',
+    listening: 'Listening... speak now 🎙️',
+    loading: 'Thinking...',
+    stop: 'Stop',
+    subtext: 'Powered by Gemini AI • Use Chrome for best voice experience',
+    listenIcon: 'Listening...',
+  },
+  'hi-IN': {
+    placeholder: 'Message likhein ya mic se bolein...',
+    listening: 'Sun raha hoon... 🎙️',
+    loading: 'Soch raha hoon...',
+    stop: 'Rok dein',
+    subtext: 'Gemini AI • Voice ke liye Chrome use karein',
+    listenIcon: 'Sun raha hoon...',
+  },
+  'pa-IN': {
+    placeholder: 'Sandesh likhein ya mic naal bolo...',
+    listening: 'Sun raha haan... 🎙️',
+    loading: 'Soch raha haan...',
+    stop: 'Rok lo',
+    subtext: 'Gemini AI • Awaaz lyi Chrome varton',
+    listenIcon: 'Sun raha haan...',
+  },
+  'mr-IN': {
+    placeholder: 'Sandesh lihaa kiva mic var bola...',
+    listening: 'Aaikat aahe... 🎙️',
+    loading: 'Vichaar karto ahe...',
+    stop: 'Thambva',
+    subtext: 'Gemini AI • Awaj sathi Chrome vaapra',
+    listenIcon: 'Aaikat aahe...',
+  },
+  'ta-IN': {
+    placeholder: 'Mesg ezuthu athavadhu mic pesi...',
+    listening: 'Ketkirein... 🎙️',
+    loading: 'Yosikkirein...',
+    stop: 'Nillu',
+    subtext: 'Gemini AI • Kural mikam Chrome payanthiru',
+    listenIcon: 'Ketkirein...',
+  },
+  'te-IN': {
+    placeholder: 'Sandenu rayandi leda mic tho cheppandi...',
+    listening: 'Vistunnanu... 🎙️',
+    loading: 'Aalochistunnanu...',
+    stop: 'Apu',
+    subtext: 'Gemini AI • Vaaisi koraku Chrome upayoginchandi',
+    listenIcon: 'Vistunnanu...',
+  },
+  'bn-IN': {
+    placeholder: 'Message likhun othoba mic-e bolun...',
+    listening: 'Shunchhi... 🎙️',
+    loading: 'Vhbchchi...',
+    stop: 'Thaman',
+    subtext: 'Gemini AI • Aawazer jonno Chrome byabohar korun',
+    listenIcon: 'Shunchhi...',
+  },
+  'gu-IN': {
+    placeholder: 'Sandesh lakho yaa mic thi bolo...',
+    listening: 'Sambhali rahyo chhu... 🎙️',
+    loading: 'Vichar kari rahyo chhu...',
+    stop: 'Athkao',
+    subtext: 'Gemini AI • Avaz mate Chrome vaapro',
+    listenIcon: 'Sambhali rahyo chhu...',
+  },
+};
+
+// Type shims for Web Speech API
 type SpeechRecognitionType = {
   lang: string;
   interimResults: boolean;
@@ -68,23 +143,21 @@ export default function KisanBot() {
     ta: 'ta-IN', te: 'te-IN', bn: 'bn-IN', gu: 'gu-IN'
   };
   const selectedLang = langMap[i18n.language?.split('-')[0]] || 'en-IN';
+  const ui = UI_STRINGS[selectedLang] || UI_STRINGS['en-IN'];
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<SpeechRecognitionType | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const conversationRef = useRef<Message[]>([]);
 
-  // Sync messages ref with state for use in callbacks
   useEffect(() => {
     conversationRef.current = messages;
   }, [messages]);
 
-  // Auto-scroll to bottom on new messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, transcript]);
 
-  // Load voices
   useEffect(() => {
     const loadVoices = () => {
       const v = window.speechSynthesis.getVoices();
@@ -94,18 +167,20 @@ export default function KisanBot() {
     if (window.speechSynthesis.onvoiceschanged !== undefined) {
       window.speechSynthesis.onvoiceschanged = loadVoices;
     }
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Welcome message when chat opens
   useEffect(() => {
     if (isOpen && messages.length === 0) {
-      const welcome = WELCOME_MESSAGES[selectedLang] || WELCOME_MESSAGES['hi-IN'];
+      const welcome = WELCOME_MESSAGES[selectedLang] || WELCOME_MESSAGES['en-IN'];
       setMessages([{ role: 'model', text: welcome }]);
       if (ttsEnabled) speak(welcome, selectedLang);
+      // Pre-request microphone permission so STT works instantly when mic is tapped
+      navigator.mediaDevices?.getUserMedia({ audio: true })
+        .then(stream => stream.getTracks().forEach(t => t.stop()))
+        .catch(() => console.warn('Mic permission denied'));
     }
   }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Cancel speech when chat closes
   useEffect(() => {
     if (!isOpen) {
       window.speechSynthesis?.cancel();
@@ -113,48 +188,71 @@ export default function KisanBot() {
     }
   }, [isOpen]);
 
-  // Listen for external open trigger (e.g. FarmerDashboard mic button)
   useEffect(() => {
     const handler = () => setIsOpen(true);
     window.addEventListener('kisanbot:open', handler);
     return () => window.removeEventListener('kisanbot:open', handler);
   }, []);
 
-  // TTS function
-  const speak = useCallback((text: string, lang: string) => {
-    if (!window.speechSynthesis) return;
+  const speakChunked = useCallback((text: string, lang: string) => {
+    if (!window.speechSynthesis || !ttsEnabled) return;
     window.speechSynthesis.cancel();
-    
-    // Clean text of emojis and special characters for better TTS
-    const cleanText = text.replace(/[^\u0000-\u007F\u0900-\u097F\u0A00-\u0A7F\u0B00-\u0B7F\u0B80-\u0BFF\u0C00-\u0C7F\u0C80-\u0CFF\u0D00-\u0D7F\u0D80-\u0DFF\s]/g, '');
-    
-    const utterance = new SpeechSynthesisUtterance(cleanText || text);
-    utterance.lang = lang;
-    utterance.rate = 0.9;
-    utterance.pitch = 1.0;
-    utterance.volume = 1.0;
 
-    // Try to find a specific voice for the language
-    const match = voices.find((v) => 
-      v.lang === lang || 
-      v.lang.replace('_', '-') === lang ||
-      v.lang.startsWith(lang.split('-')[0])
-    );
-    
-    if (match) {
-      utterance.voice = match;
-    }
+    // Remove emojis and markdown-style symbols for cleaner speech
+    const cleanText = text
+      .replace(/[^\u0000-\u007F\u0900-\u097F\u0A00-\u0A7F\u0B00-\u0B7F\u0B80-\u0BFF\u0C00-\u0C7F\u0C80-\u0CFF\u0D00-\u0D7F\u0D80-\u0DFF\s.,!?]/g, '')
+      .replace(/\n+/g, '. ')
+      .trim();
 
-    utterance.onstart = () => setIsSpeaking(true);
-    utterance.onend = () => setIsSpeaking(false);
-    utterance.onerror = (e) => {
-      console.error('Speech error:', e);
-      setIsSpeaking(false);
+    if (!cleanText) return;
+
+    // Split into sentence-level chunks (~100 chars) to avoid Chrome's ~15s cutoff bug
+    const sentences = cleanText.match(/[^.!?।]+[.!?।]*/g) || [cleanText];
+    let i = 0;
+
+    const speakNext = () => {
+      if (i >= sentences.length) {
+        setIsSpeaking(false);
+        return;
+      }
+      const chunk = sentences[i++].trim();
+      if (!chunk) { speakNext(); return; }
+
+      const utterance = new SpeechSynthesisUtterance(chunk);
+      utterance.lang = lang;
+      utterance.rate = 0.9;
+      utterance.pitch = 1.0;
+      utterance.volume = 1.0;
+
+      const match = voices.find((v) =>
+        v.lang === lang ||
+        v.lang.replace('_', '-') === lang ||
+        v.lang.startsWith(lang.split('-')[0])
+      );
+      if (match) utterance.voice = match;
+
+      utterance.onstart = () => setIsSpeaking(true);
+      utterance.onend = speakNext;
+      utterance.onerror = () => { setIsSpeaking(false); };
+      window.speechSynthesis.speak(utterance);
     };
-    window.speechSynthesis.speak(utterance);
-  }, [voices, ttsEnabled]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Send a message to Gemini
+    // Chrome bug workaround: speechSynthesis can silently pause — keep nudging it
+    const resumeTimer = setInterval(() => {
+      if (!window.speechSynthesis.speaking) {
+        clearInterval(resumeTimer);
+      } else {
+        window.speechSynthesis.pause();
+        window.speechSynthesis.resume();
+      }
+    }, 10000);
+
+    speakNext();
+  }, [voices, ttsEnabled]);
+
+  // Keep backward compat alias
+  const speak = speakChunked;
+
   const sendMessage = useCallback(async (text: string) => {
     if (!text.trim() || isLoading) return;
     const trimmed = text.trim();
@@ -167,6 +265,7 @@ export default function KisanBot() {
     setPulseAnim(false);
 
     try {
+      // Pass the full BCP-47 lang code so gemini.ts knows the user's preference
       const botReply = await askKisanBot(conversationRef.current, trimmed, selectedLang);
       const botMsg: Message = { role: 'model', text: botReply };
       setMessages((prev) => [...prev, botMsg]);
@@ -179,8 +278,8 @@ export default function KisanBot() {
       const errMsg: Message = {
         role: 'model',
         text: error.message === 'GEMINI_API_KEY_MISSING'
-          ? '⚠️ API key nahi mila. frontend/.env file mein VITE_GEMINI_API_KEY=your_actual_key likhein aur server restart karein.'
-          : `❌ Error: ${error.message}\n\nAgr API key galat lag raha hai, to aistudio.google.com se naya key lein aur .env file mein paste karein.`,
+          ? '⚠️ API key not found. Please set VITE_GEMINI_API_KEY in frontend/.env and restart the server.'
+          : `❌ ${error.message}`,
       };
       setMessages((prev) => [...prev, errMsg]);
     } finally {
@@ -188,7 +287,6 @@ export default function KisanBot() {
     }
   }, [isLoading, selectedLang, ttsEnabled, speak]);
 
-  // Start / Stop STT
   const toggleListening = useCallback(() => {
     if (isListening) {
       recognitionRef.current?.stop();
@@ -213,7 +311,7 @@ export default function KisanBot() {
       setIsListening(true);
       setPulseAnim(true);
       setTranscript('');
-      window.speechSynthesis?.cancel(); // Stop TTS while user is speaking
+      window.speechSynthesis?.cancel();
     };
 
     recognition.onresult = (event: SpeechRecognitionResultEvent) => {
@@ -244,7 +342,7 @@ export default function KisanBot() {
     recognition.start();
   }, [isListening, selectedLang, sendMessage]);
 
-  // When language changes via app settings, reset chat if open
+  // Reset chat when user changes language
   useEffect(() => {
     if (isOpen) {
       setMessages([]);
@@ -303,12 +401,15 @@ export default function KisanBot() {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-white font-bold text-sm">🌾 KisanBot</p>
-              <p className="text-green-100 text-xs truncate">Aapka krishi sahayak — always here</p>
+              <p className="text-green-100 text-xs truncate flex items-center gap-1">
+                {isSpeaking && <span className="w-2 h-2 bg-blue-300 rounded-full animate-pulse inline-block"/>}
+                {isListening ? ui.listenIcon : 'Your AI farming assistant'}
+              </p>
             </div>
 
             {/* Selected Language indicator */}
             <div className="bg-white/20 text-white text-[10px] font-medium px-2 py-1 rounded-md">
-              {currentLang.label} / {currentLang.name}
+              {currentLang.label}
             </div>
 
             {/* TTS Toggle */}
@@ -353,7 +454,7 @@ export default function KisanBot() {
                     <button 
                       onClick={() => speak(msg.text, selectedLang)}
                       className="absolute -right-9 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-white border border-gray-200 text-green-600 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm hover:bg-green-50"
-                      title="Sunein"
+                      title="Play message"
                     >
                       <Volume2 className="w-3.5 h-3.5" />
                     </button>
@@ -384,7 +485,7 @@ export default function KisanBot() {
                 </div>
                 <div className="bg-gray-100 rounded-2xl rounded-tl-sm px-4 py-3 flex items-center gap-2">
                   <Loader2 className="w-4 h-4 text-green-600 animate-spin" />
-                  <span className="text-xs text-gray-500">Soch raha hoon...</span>
+                  <span className="text-xs text-gray-500">{ui.loading}</span>
                 </div>
               </div>
             )}
@@ -406,9 +507,9 @@ export default function KisanBot() {
                   />
                 ))}
               </div>
-              <span className="text-xs text-red-600 font-medium flex-1">Sun raha hoon...</span>
+              <span className="text-xs text-red-600 font-medium flex-1">{ui.listening}</span>
               <button onClick={toggleListening} className="text-xs text-red-500 font-medium hover:text-red-700">
-                Rok dein
+                {ui.stop}
               </button>
             </div>
           )}
@@ -422,7 +523,7 @@ export default function KisanBot() {
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage(inputText)}
-                placeholder={isListening ? 'Bol rahe hain... 🎙️' : 'Message likhein ya mic dabayein...'}
+                placeholder={isListening ? ui.listening : ui.placeholder}
                 className="flex-1 bg-transparent text-sm text-gray-800 placeholder-gray-400 outline-none"
                 disabled={isListening || isLoading}
               />
@@ -441,11 +542,12 @@ export default function KisanBot() {
                   onClick={toggleListening}
                   className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all ${
                     isListening
-                      ? 'bg-red-500 hover:bg-red-600'
+                      ? 'bg-red-500 hover:bg-red-600 animate-pulse'
                       : pulseAnim
                       ? 'bg-green-600 animate-pulse'
                       : 'bg-green-600 hover:bg-green-700'
                   }`}
+                  title={isListening ? ui.stop : 'Start voice input'}
                 >
                   {isListening ? (
                     <MicOff className="w-4 h-4 text-white" />
@@ -456,7 +558,7 @@ export default function KisanBot() {
               )}
             </div>
             <p className="text-[10px] text-gray-400 text-center mt-1.5">
-              Powered by Gemini AI • Chrome recommended for voice
+              {ui.subtext}
             </p>
           </div>
         </div>

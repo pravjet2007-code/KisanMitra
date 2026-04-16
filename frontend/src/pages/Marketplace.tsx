@@ -78,7 +78,15 @@ export default function Marketplace() {
           <div className="flex flex-wrap gap-3 items-center">
             <div className="flex gap-2 flex-wrap">
               {['All', 'Wheat', 'Rice', 'Mustard', 'Soybean', 'Chickpea'].map((cat) => (
-                <button key={cat} onClick={() => setSelectedCategory(cat)} className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${selectedCategory === cat ? 'bg-terracotta text-white shadow-md' : 'bg-light text-dark hover:bg-border'}`}>
+                <button 
+                  key={cat} 
+                  onClick={() => setSelectedCategory(cat)} 
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                    selectedCategory === cat 
+                      ? 'bg-terracotta text-white shadow-md' 
+                      : 'bg-light text-dark hover:bg-border'
+                  }`}
+                >
                   {t(`marketplaceContext.categories.${cat.toLowerCase()}`, cat)}
                 </button>
               ))}

@@ -346,6 +346,18 @@
       "disputes": "No disputes",
       "history": "Transaction History",
       "none": "No transactions yet. Start selling to see your payment history and Farmer Score."
+    },
+    "tasks": {
+      "title": "Today's AI Farming Tasks",
+      "generate": "Generate Tasks",
+      "generating": "Generating weather-aware tasks...",
+      "noWeather": "Enable location access to get weather-based tasks.",
+      "setProfile": "Set your crop type in your Profile to generate AI tasks."
+    },
+    "weather": {
+      "title": "Weather Forecast",
+      "noLocation": "Enable location to see local weather",
+      "error": "Weather unavailable"
     }
   },
   "bd": {
