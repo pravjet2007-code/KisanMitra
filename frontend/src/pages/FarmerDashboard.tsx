@@ -9,18 +9,22 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { getSoilAnalysis, getDiseaseAnalysis, getWeatherTasks, WeatherTaskDay } from '../utils/gemini';
+import { useAuth } from '../context/AuthContext';
 
 type Tab = 'overview' | 'soil' | 'pest' | 'disease' | 'schemes' | 'market' | 'transactions' | 'profile';
 
 export default function FarmerDashboard() {
   const { t, i18n } = useTranslation();
+  const { user, updateProfile } = useAuth();
   const [activeTab, setActiveTab] = useState<Tab>('overview');
   const [showVoice, setShowVoice] = useState(false);
-  const [profileSetup, setProfileSetup] = useState(false);
-  const [farmerName, setFarmerName] = useState('');
-  const [farmLocation, setFarmLocation] = useState('');
-  const [farmSize, setFarmSize] = useState('');
-  const [cropType, setCropType] = useState('');
+
+  // Profile state — pre-populated from AuthContext user
+  const [farmerName, setFarmerName] = useState(user?.full_name || '');
+  const [farmLocation, setFarmLocation] = useState(user?.location || '');
+  const [farmSize, setFarmSize] = useState(user?.farm_size || '');
+  const [cropType, setCropType] = useState(user?.crop_type || '');
+  const profileSetup = !!(user?.full_name);
 
   // ML States
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -121,9 +125,14 @@ export default function FarmerDashboard() {
     }
   };
 
-  const handleProfileSave = () => {
+  const handleProfileSave = async () => {
     if (farmerName && farmLocation) {
-      setProfileSetup(true);
+      await updateProfile({
+        full_name: farmerName,
+        location: farmLocation,
+        farm_size: farmSize,
+        crop_type: cropType,
+      });
       setActiveTab('overview');
       // Auto-generate tasks now that we have cropType
       if (weatherData && cropType) handleGenerateTasks(weatherData);

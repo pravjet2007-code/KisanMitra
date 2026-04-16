@@ -142,14 +142,14 @@ export default function HomePage() {
 
             <div className="flex flex-col sm:flex-row gap-4 mb-12">
               <Link
-                to="/farmer-dashboard"
+                to="/auth"
                 className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-terracotta text-white font-heading font-bold rounded-xl hover:bg-terracotta-dark transition-all shadow-lg hover:shadow-xl text-base"
               >
                 <Wheat className="w-5 h-5" />
                 {t('home.joinFarmer', 'Join as Farmer')}
               </Link>
               <Link
-                to="/buyer-dashboard"
+                to="/auth"
                 className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white/10 border border-white/20 text-white font-heading font-semibold rounded-xl hover:bg-white/20 transition-all text-base backdrop-blur-sm"
               >
                 {t('home.joinBuyer', 'Join as Buyer')}
@@ -412,7 +412,7 @@ export default function HomePage() {
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3">
                   <Link
-                    to="/farmer-dashboard"
+                    to="/auth"
                     className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-terracotta text-white font-semibold rounded-xl hover:bg-terracotta-dark transition-all shadow-lg"
                   >
                     {t('home.startJourney', 'Start Your Journey')} <ArrowRight className="w-4 h-4" />
@@ -459,7 +459,7 @@ export default function HomePage() {
 
           <div className="text-center mt-10">
             <Link
-              to="/buyer-dashboard"
+              to="/auth"
               className="inline-flex items-center gap-2 px-8 py-4 bg-info text-white font-bold rounded-xl hover:bg-info/90 transition-colors shadow-lg text-base"
             >
               {t('home.buyerSection.exploreBtn', 'Explore Buyer Dashboard')} <ArrowRight className="w-5 h-5" />
@@ -485,7 +485,7 @@ export default function HomePage() {
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Link
-              to="/farmer-dashboard"
+              to="/auth"
               className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-terracotta text-white font-bold rounded-xl hover:bg-terracotta-dark transition-all shadow-xl text-lg"
             >
               {t('home.getStartedFree', 'Get Started Free')} <ArrowRight className="w-5 h-5" />
