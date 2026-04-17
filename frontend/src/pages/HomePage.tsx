@@ -5,7 +5,7 @@ import {
   Leaf, BarChart3, Users, ShoppingCart,
   ArrowRight, CheckCircle2, Globe, Smartphone,
   Mic, Play, ChevronDown, Wheat, ScanLine, Lock,
-  CircleDollarSign, FileCheck, Target, Truck, BookOpen
+  CircleDollarSign, FileCheck, Target, Truck, BookOpen, Microscope
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -20,7 +20,7 @@ const stats = [
   { value: '08', labelKey: 'home.stats.languages', icon: Globe },
 ];
 
-const modulesKeys = [
+const modulesData = [
   {
     id: 'soil',
     icon: Leaf,
@@ -34,9 +34,18 @@ const modulesKeys = [
     id: 'pest',
     icon: Bug,
     title: 'Pest & Disease Monitoring',
-    desc: 'Phone-based AI scans pheromone traps and leaf photos. Get outbreak predictions and eco-friendly treatment plans.',
+    desc: 'Phone-based AI scans pheromone traps. Get outbreak predictions and eco-friendly treatment plans.',
     metrics: ['80%+ classification accuracy', 'Community outbreak alerts', 'Treatment guidance'],
-    img: 'https://images.unsplash.com/photo-1592982537447-6f2a6a0c7c18?w=600&q=80',
+    img: 'https://images.unsplash.com/photo-1605000797499-95a51c5269ae?w=600&q=80',
+    accent: 'from-terracotta to-terracotta-light',
+  },
+  {
+    id: 'disease',
+    icon: Microscope,
+    title: 'Plant Disease Detection',
+    desc: 'Upload leaf photos using your phone camera. On-device AI identifies plant diseases, analyzes severity, and predicts spread risk using environmental and regional data.',
+    metrics: ['80%+ classification accuracy', 'Instant photo diagnosis', 'Treatment guidance'],
+    img: 'https://images.unsplash.com/photo-1530836369250-ef72a3f5cda8?w=600&q=80',
     accent: 'from-terracotta to-terracotta-light',
   },
   {
@@ -68,30 +77,122 @@ const modulesKeys = [
   },
 ];
 
-
-const howItWorksKeys = [
-  { step: '01', key: '1', icon: Smartphone, img: FARM_IMG },
-  { step: '02', key: '2', icon: BookOpen, img: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800&q=80' },
-  { step: '03', key: '3', icon: ShoppingCart, img: HARVEST_IMG },
+const howItWorksData = [
+  {
+    step: '01',
+    icon: Smartphone,
+    img: FARM_IMG,
+    title: 'Set Up Your Farm Profile',
+    desc: 'Register your farm, connect IoT soil sensors, and set your crop preferences in minutes.',
+  },
+  {
+    step: '02',
+    icon: BookOpen,
+    img: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800&q=80',
+    title: 'Get AI-Driven Insights',
+    desc: 'Receive real-time recommendations on soil health, pest control, and government schemes tailored to your farm.',
+  },
+  {
+    step: '03',
+    icon: ShoppingCart,
+    img: HARVEST_IMG,
+    title: 'Sell at the Best Price',
+    desc: 'List your produce, connect with verified buyers, and receive instant UPI payments with escrow protection.',
+  },
 ];
 
-const journeyStepsKeys = [
-  { key: 'preSowing', phase: 'Pre-Sowing', desc: 'Install soil sensors → view pH/NPK report → buy recommended fertilizer through marketplace.', icon: Leaf, color: 'bg-sage' },
-  { key: 'emergence', phase: 'Emergence', desc: 'Scan pheromone traps weekly → receive outbreak alerts → apply recommended treatments.', icon: Bug, color: 'bg-terracotta' },
-  { key: 'midSeason', phase: 'Mid-Season', desc: 'Check eligible government schemes → apply for PM Kisan, KCC or crop insurance → get subsidy directly in bank account.', icon: BookOpen, color: 'bg-emerald-600' },
-  { key: 'preHarvest', phase: 'Pre-Harvest', desc: 'View yield estimate + price forecast → compare buyers → list crop at best price.', icon: TrendingUp, color: 'bg-amber' },
-  { key: 'sale', phase: 'Sale', desc: 'Accept best offer → escrow contract created → pickup scheduled → quality verified → instant UPI payout.', icon: Shield, color: 'bg-clay' },
+const journeyStepsData = [
+  {
+    phase: 'Pre-Sowing',
+    desc: 'Install soil sensors → view pH/NPK report → buy recommended fertilizer through marketplace.',
+    icon: Leaf,
+    color: 'bg-sage',
+  },
+  {
+    phase: 'Emergence',
+    desc: 'Scan pheromone traps weekly → receive outbreak alerts → apply recommended treatments.',
+    icon: Bug,
+    color: 'bg-terracotta',
+  },
+  {
+    phase: 'Mid-Season',
+    desc: 'Check eligible government schemes → apply for PM Kisan, KCC or crop insurance → get subsidy directly in bank account.',
+    icon: BookOpen,
+    color: 'bg-emerald-600',
+  },
+  {
+    phase: 'Pre-Harvest',
+    desc: 'View yield estimate + price forecast → compare buyers → list crop at best price.',
+    icon: TrendingUp,
+    color: 'bg-amber',
+  },
+  {
+    phase: 'Sale',
+    desc: 'Accept best offer → escrow contract created → pickup scheduled → quality verified → instant UPI payout.',
+    icon: Shield,
+    color: 'bg-clay',
+  },
 ];
 
-const buyerFeaturesKeys = [
-  { key: 'forecast', icon: BarChart3, title: 'Supply Forecast Dashboard', desc: 'Regional yield predictions 4–6 weeks before harvest.' },
-  { key: 'quality', icon: FileCheck, title: 'Verified Quality Data', desc: 'Soil history, drone maps, pest records, and Farmer Score.' },
-  { key: 'checks', icon: ScanLine, title: 'Digital Quality Checks', desc: 'Moisture, grade, foreign matter with photo evidence.' },
-  { key: 'trace', icon: Target, title: 'Full Lot Traceability', desc: 'Farm-to-buyer passport for compliance & export readiness.' },
-  { key: 'escrow', icon: Lock, title: 'Secure Escrow Payments', desc: 'Funds held until quality confirmed. Automated release.' },
-  { key: 'logistics', icon: Truck, title: 'Logistics Integration', desc: 'Schedule pickups, track shipments, verification codes.' },
+const buyerFeaturesData = [
+  {
+    icon: BarChart3,
+    title: 'Supply Forecast Dashboard',
+    desc: 'Regional yield predictions 4–6 weeks before harvest.',
+  },
+  {
+    icon: FileCheck,
+    title: 'Verified Quality Data',
+    desc: 'Soil history, drone maps, pest records, and Farmer Score.',
+  },
+  {
+    icon: ScanLine,
+    title: 'Digital Quality Checks',
+    desc: 'Moisture, grade, foreign matter with photo evidence.',
+  },
+  {
+    icon: Target,
+    title: 'Full Lot Traceability',
+    desc: 'Farm-to-buyer passport for compliance & export readiness.',
+  },
+  {
+    icon: Lock,
+    title: 'Secure Escrow Payments',
+    desc: 'Funds held until quality confirmed. Automated release.',
+  },
+  {
+    icon: Truck,
+    title: 'Logistics Integration',
+    desc: 'Schedule pickups, track shipments, verification codes.',
+  },
 ];
 
+const flywheelData = [
+  {
+    icon: Leaf,
+    accent: 'text-sage-light',
+    title: 'Season Data Collected',
+    desc: 'Soil, pest, weather, and yield data is captured every season across all farms.',
+  },
+  {
+    icon: BookOpen,
+    accent: 'text-emerald-400',
+    title: 'Scheme Matching Improves',
+    desc: 'More farmer profiles mean better eligibility matching for government schemes.',
+  },
+  {
+    icon: TrendingUp,
+    accent: 'text-terracotta-light',
+    title: 'Predictions Get Smarter',
+    desc: 'AI models retrain each cycle — yield and price forecasts become more accurate.',
+  },
+  {
+    icon: Users,
+    accent: 'text-amber-light',
+    title: 'Adoption Grows',
+    desc: 'Better outcomes attract more farmers and buyers, strengthening the network.',
+  },
+];
 
 export default function HomePage() {
   const { t } = useTranslation();
@@ -100,6 +201,7 @@ export default function HomePage() {
 
   return (
     <div className="overflow-hidden">
+
       {/* ========== HERO ========== */}
       <section className="relative min-h-[100svh] flex items-center">
         {/* Background Image */}
@@ -172,7 +274,7 @@ export default function HomePage() {
               </div>
               <div className="flex items-center gap-2">
                 <Globe className="w-4 h-4 text-terracotta-light" />
-                <span>{t('home.languages', '22 Languages')}</span>
+                <span>{t('home.languages', '08 Languages')}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Shield className="w-4 h-4 text-terracotta-light" />
@@ -189,67 +291,12 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ========== STATS BAR ========== */}
-      <section className="bg-white border-b border-border">
-        <div className="max-w-[1280px] mx-auto px-4 md:px-8 lg:px-12 py-12 md:py-16">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
-            {stats.map((stat) => (
-              <div key={stat.labelKey} className="text-center group">
-                <div className="w-14 h-14 bg-terracotta/10 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:bg-terracotta group-hover:scale-110 transition-all duration-300">
-                  <stat.icon className="w-6 h-6 text-terracotta group-hover:text-white transition-colors" />
-                </div>
-                <p className="font-heading text-2xl sm:text-3xl font-bold text-black">{stat.value}</p>
-                <p className="text-medium text-sm mt-1">{t(stat.labelKey)}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ========== HOW IT WORKS ========== */}
-      <section className="bg-offwhite py-20 md:py-28 bg-pattern-dots">
-        <div className="max-w-[1280px] mx-auto px-4 md:px-8 lg:px-12">
-          <div className="text-center mb-14 md:mb-20">
-            <span className="inline-block px-4 py-1.5 bg-terracotta/10 text-terracotta text-sm font-bold rounded-full mb-4 tracking-wide uppercase">
-              {t('home.threeStep', '3-Step Process')}
-            </span>
-            <h2 className="font-heading text-3xl md:text-4xl lg:text-5xl font-bold text-black mb-5">
-              {t('home.howItWorksTitle', 'How It Works')}
-            </h2>
-            <p className="text-medium text-lg max-w-2xl mx-auto">
-              {t('home.howItWorksSubtitle', "From sowing to selling — we're with you every step.")}
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-6 md:gap-8">
-            {howItWorksKeys.map((item, i) => (
-              <div key={i} className="group relative bg-white rounded-2xl overflow-hidden shadow-sm card-hover border border-border">
-                <div className="relative h-48 overflow-hidden">
-                  <img src={item.img} alt={t(`home.how.${item.key}.title`)} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                  <div className="absolute top-4 left-4 w-10 h-10 bg-terracotta text-white text-sm font-bold rounded-xl flex items-center justify-center shadow-md">
-                    {item.step}
-                  </div>
-                </div>
-                <div className="p-6">
-                  <div className="w-12 h-12 bg-terracotta/10 rounded-xl flex items-center justify-center mb-4">
-                    <item.icon className="w-6 h-6 text-terracotta" />
-                  </div>
-                  <h3 className="font-heading text-xl font-bold text-black mb-3">{t(`home.how.${item.key}.title`)}</h3>
-                  <p className="text-medium text-sm leading-relaxed">{t(`home.how.${item.key}.desc`)}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ========== 5 MODULES ========== */}
+      {/* ========== 6 MODULES ========== */}
       <section className="bg-white py-20 md:py-28">
         <div className="max-w-[1280px] mx-auto px-4 md:px-8 lg:px-12">
           <div className="text-center mb-14">
             <span className="inline-block px-4 py-1.5 bg-amber/10 text-amber text-sm font-bold rounded-full mb-4 tracking-wide uppercase">
-              {t('home.fiveModules', '5 Powerful Modules')}
+              {t('home.sixModules', '6 Powerful Modules')}
             </span>
             <h2 className="font-heading text-3xl md:text-4xl lg:text-5xl font-bold text-black mb-5">
               {t('home.platformTitle', 'Complete Farm-to-Market Platform')}
@@ -262,21 +309,23 @@ export default function HomePage() {
           <div className="grid lg:grid-cols-12 gap-6 lg:gap-8">
             {/* Tab buttons */}
             <div className="lg:col-span-4 flex flex-row lg:flex-col gap-2 overflow-x-auto lg:overflow-visible pb-4 lg:pb-0 -mx-4 px-4 lg:mx-0 lg:px-0">
-              {modulesKeys.map((mod, i) => (
+              {modulesData.map((mod, i) => (
                 <button
-                  key={i}
+                  key={mod.id}
                   onClick={() => setActiveModule(i)}
-                  className={`flex items-center gap-3 px-4 py-3.5 rounded-xl text-left transition-all whitespace-nowrap lg:whitespace-normal min-w-[200px] lg:min-w-0 border ${activeModule === i
-                    ? 'bg-white border-terracotta/30 shadow-md'
-                    : 'bg-light border-transparent hover:border-border hover:bg-white'
-                    }`}
+                  className={`flex items-center gap-3 px-4 py-3.5 rounded-xl text-left transition-all whitespace-nowrap lg:whitespace-normal min-w-[200px] lg:min-w-0 border ${
+                    activeModule === i
+                      ? 'bg-white border-terracotta/30 shadow-md'
+                      : 'bg-light border-transparent hover:border-border hover:bg-white'
+                  }`}
                 >
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${activeModule === i ? 'bg-terracotta text-white' : 'bg-terracotta/10 text-terracotta'
-                    }`}>
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                    activeModule === i ? 'bg-terracotta text-white' : 'bg-terracotta/10 text-terracotta'
+                  }`}>
                     <mod.icon className="w-5 h-5" />
                   </div>
                   <span className={`text-sm font-semibold ${activeModule === i ? 'text-black' : 'text-dark'}`}>
-                    {t(`home.modules.${mod.id}.title`)}
+                    {mod.title}
                   </span>
                   {activeModule === i && (
                     <ChevronRight className="w-4 h-4 text-terracotta ml-auto hidden lg:block" />
@@ -290,26 +339,26 @@ export default function HomePage() {
               <div className="rounded-2xl overflow-hidden border border-border bg-white shadow-sm animate-fade-in">
                 <div className="relative h-48 sm:h-56">
                   <img
-                    src={modulesKeys[activeModule].img}
-                    alt={t(`home.modules.${modulesKeys[activeModule].id}.title`)}
+                    src={modulesData[activeModule].img}
+                    alt={modulesData[activeModule].title}
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
                   <div className="absolute bottom-4 left-6 right-6">
                     <h3 className="font-heading text-xl sm:text-2xl font-bold text-white">
-                      {t(`home.modules.${modulesKeys[activeModule].id}.title`)}
+                      {modulesData[activeModule].title}
                     </h3>
                   </div>
                 </div>
                 <div className="p-6 lg:p-8">
                   <p className="text-medium leading-relaxed text-base mb-6">
-                    {t(`home.modules.${modulesKeys[activeModule].id}.desc`)}
+                    {modulesData[activeModule].desc}
                   </p>
                   <div className="grid sm:grid-cols-3 gap-3">
-                    {['m1', 'm2', 'm3'].map((mKey, i) => (
+                    {modulesData[activeModule].metrics.map((metric, i) => (
                       <div key={i} className="bg-offwhite rounded-xl p-4 border border-border">
                         <CheckCircle2 className="w-5 h-5 text-sage mb-2" />
-                        <p className="text-sm font-semibold text-black">{t(`home.modules.${modulesKeys[activeModule].id}.${mKey}`)}</p>
+                        <p className="text-sm font-semibold text-black">{metric}</p>
                       </div>
                     ))}
                   </div>
@@ -329,7 +378,11 @@ export default function HomePage() {
       {/* ========== DATA FLYWHEEL ========== */}
       <section className="relative py-20 md:py-28 overflow-hidden">
         <div className="absolute inset-0">
-          <img src="https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=1920&q=80" alt="" className="w-full h-full object-cover" />
+          <img
+            src="https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=1920&q=80"
+            alt=""
+            className="w-full h-full object-cover"
+          />
           <div className="absolute inset-0 bg-black/75" />
         </div>
         <div className="relative max-w-[1280px] mx-auto px-4 md:px-8 lg:px-12">
@@ -345,27 +398,23 @@ export default function HomePage() {
             </p>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-            {buyerFeaturesKeys.slice(0, 4).map((_, i) => {
-              const keys = ['data', 'schemes', 'predictions', 'adoption'];
-              const icons = [Leaf, BookOpen, TrendingUp, Users];
-              const accents = ['text-sage-light', 'text-emerald-400', 'text-terracotta-light', 'text-amber-light'];
-              const Icon = icons[i];
-              return (
-                <div key={i} className="glass-dark border border-white/10 rounded-2xl p-6 md:p-7 hover:bg-white/10 transition-all group">
-                  <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                    <Icon className={`w-6 h-6 ${accents[i]}`} />
-                  </div>
-                  <h4 className="font-heading text-lg font-bold text-white mb-2">{t(`home.flywheelItems.${keys[i]}.title`)}</h4>
-                  <p className="text-white/40 text-sm leading-relaxed">{t(`home.flywheelItems.${keys[i]}.desc`)}</p>
-                  {i < 3 && <ArrowRight className="w-5 h-5 text-white/20 mt-4 hidden lg:block" />}
+            {flywheelData.map((item, i) => (
+              <div key={i} className="glass-dark border border-white/10 rounded-2xl p-6 md:p-7 hover:bg-white/10 transition-all group">
+                <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <item.icon className={`w-6 h-6 ${item.accent}`} />
                 </div>
-              );
-            })}
+                <h4 className="font-heading text-lg font-bold text-white mb-2">{item.title}</h4>
+                <p className="text-white/40 text-sm leading-relaxed">{item.desc}</p>
+                {i < flywheelData.length - 1 && (
+                  <ArrowRight className="w-5 h-5 text-white/20 mt-4 hidden lg:block" />
+                )}
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* ========== FARMER JOURNEY (Generic — no hardcoded Ravi) ========== */}
+      {/* ========== FARMER JOURNEY ========== */}
       <section className="bg-offwhite py-20 md:py-28 bg-pattern-dots">
         <div className="max-w-[1280px] mx-auto px-4 md:px-8 lg:px-12">
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-start">
@@ -380,26 +429,26 @@ export default function HomePage() {
                 {t('home.journeySubtitle', 'KISAN MITRA guides farmers through every phase of the crop cycle, from sowing decisions to post-harvest sales.')}
               </p>
               <div className="space-y-1">
-                {journeyStepsKeys.map((phase, i) => (
+                {journeyStepsData.map((phase, i) => (
                   <div key={i} className="flex gap-4 group">
                     <div className="flex flex-col items-center">
                       <div className={`w-11 h-11 rounded-xl ${phase.color} flex items-center justify-center shrink-0 shadow-md group-hover:scale-110 transition-transform`}>
                         <phase.icon className="w-5 h-5 text-white" />
                       </div>
-                      {i < journeyStepsKeys.length - 1 && (
+                      {i < journeyStepsData.length - 1 && (
                         <div className="w-0.5 flex-1 bg-border mt-2 min-h-[24px]" />
                       )}
                     </div>
                     <div className="pb-8">
-                      <h4 className="font-heading font-bold text-black text-base mb-1">{t(`home.journeyPhases.${phase.key}.title`)}</h4>
-                      <p className="text-medium text-sm leading-relaxed">{t(`home.journeyPhases.${phase.key}.desc`)}</p>
+                      <h4 className="font-heading font-bold text-black text-base mb-1">{phase.phase}</h4>
+                      <p className="text-medium text-sm leading-relaxed">{phase.desc}</p>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* CTA card — no hardcoded data */}
+            {/* CTA card */}
             <div className="relative rounded-2xl overflow-hidden shadow-xl">
               <img src={HARVEST_IMG} alt="Harvest" className="w-full h-72 object-cover" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
@@ -446,13 +495,13 @@ export default function HomePage() {
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
-            {buyerFeaturesKeys.map((feat, i) => (
+            {buyerFeaturesData.map((feat, i) => (
               <div key={i} className="bg-offwhite border border-border rounded-2xl p-6 md:p-7 card-hover group">
                 <div className="w-12 h-12 bg-info/10 rounded-xl flex items-center justify-center mb-5 group-hover:bg-info group-hover:scale-110 transition-all duration-300">
                   <feat.icon className="w-6 h-6 text-info group-hover:text-white transition-colors" />
                 </div>
-                <h3 className="font-heading text-lg font-bold text-black mb-2">{t(`home.buyerSection.features.${feat.key}.title`)}</h3>
-                <p className="text-medium text-sm leading-relaxed">{t(`home.buyerSection.features.${feat.key}.desc`)}</p>
+                <h3 className="font-heading text-lg font-bold text-black mb-2">{feat.title}</h3>
+                <p className="text-medium text-sm leading-relaxed">{feat.desc}</p>
               </div>
             ))}
           </div>
@@ -468,11 +517,14 @@ export default function HomePage() {
         </div>
       </section>
 
-
       {/* ========== FINAL CTA ========== */}
       <section className="relative py-20 md:py-28 overflow-hidden">
         <div className="absolute inset-0">
-          <img src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1920&q=80" alt="" className="w-full h-full object-cover" />
+          <img
+            src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1920&q=80"
+            alt=""
+            className="w-full h-full object-cover"
+          />
           <div className="absolute inset-0 bg-black/70" />
         </div>
         <div className="relative max-w-[800px] mx-auto px-4 md:px-8 text-center">
@@ -502,13 +554,23 @@ export default function HomePage() {
 
       {/* ========== VIDEO MODAL ========== */}
       {showVideo && (
-        <div className="fixed inset-0 z-[100] bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in" onClick={() => setShowVideo(false)}>
-          <div className="bg-white rounded-2xl p-8 max-w-lg w-full text-center shadow-2xl animate-scale-in" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 z-[100] bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in"
+          onClick={() => setShowVideo(false)}
+        >
+          <div
+            className="bg-white rounded-2xl p-8 max-w-lg w-full text-center shadow-2xl animate-scale-in"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="w-20 h-20 bg-terracotta/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
               <Play className="w-10 h-10 text-terracotta" />
             </div>
-            <h3 className="font-heading text-2xl font-bold text-black mb-2">{t('home.demoSoon', 'Demo Coming Soon')}</h3>
-            <p className="text-medium mb-6">{t('home.demoDesc', 'Our platform walkthrough is being prepared.')}</p>
+            <h3 className="font-heading text-2xl font-bold text-black mb-2">
+              {t('home.demoSoon', 'Demo Coming Soon')}
+            </h3>
+            <p className="text-medium mb-6">
+              {t('home.demoDesc', 'Our platform walkthrough is being prepared.')}
+            </p>
             <button
               onClick={() => setShowVideo(false)}
               className="px-6 py-3 bg-black text-white rounded-xl font-semibold hover:bg-dark transition-colors"
@@ -518,6 +580,7 @@ export default function HomePage() {
           </div>
         </div>
       )}
+
     </div>
   );
 }

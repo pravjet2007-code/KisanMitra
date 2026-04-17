@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import {
   Leaf, Bug, TrendingUp, Shield, Smartphone, Globe,
   Mic, CheckCircle2, ArrowRight, Sprout, Users, Lock,
-  BarChart3, Truck, ScanLine, BookOpen
+  BarChart3, Truck, ScanLine, BookOpen, Microscope 
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -29,18 +29,36 @@ export default function FeaturesPage() {
     {
       id: 'pest',
       icon: Bug,
-      title: t('home.modules.pest.title', 'Pest & Disease Monitoring'),
+      title: t('home.modules.pest.title', 'Pest Monitoring'),
       tagline: t('home.modules.pest.tagline', 'Catch threats before they spread.'),
-      description: t('home.modules.pest.desc', 'Use your phone camera to scan pheromone sticky traps and leaf photos. On-device AI counts, classifies insects, identifies diseases, and predicts outbreaks using weather and community data.'),
+      description: t('home.modules.pest.desc', 'Use your phone camera to scan pheromone sticky trap photos. On-device AI counts and classifies insects, and predicts outbreaks using weather and community data.'),
       capabilities: [
         t('home.modules.pest.m1', '80%+ classification accuracy'),
         t('home.modules.pest.m2', 'Community outbreak alerts'),
         t('home.modules.pest.m3', 'Treatment guidance'),
-        'Leaf photo disease identification',
+        'Pheromone trap photo analysis',
         'Outbreak risk scoring & prediction',
         'Eco-friendly treatment recommendations',
       ],
-      img: 'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=800&q=80',
+      img: 'https://images.unsplash.com/photo-1605000797499-95a51c5269ae',
+    },
+    {
+      id: 'disease',
+      icon: Microscope,
+      title: t('home.modules.disease.title', 'Plant Disease Detection'),
+      tagline: t('home.modules.disease.tagline', 'Detect diseases before they spread.'),
+      description: t('home.modules.disease.desc',
+      'Upload leaf photos using your phone camera. On-device AI identifies plant diseases, analyzes severity, and predicts spread risk using environmental and regional data.'
+      ),
+      capabilities: [
+        t('home.modules.disease.m1', '80%+ classification accuracy'),
+        t('home.modules.disease.m2', 'Instant photo diagnosis'),
+        t('home.modules.disease.m3', 'Treatment guidance'),
+        'Disease severity analysis',
+        'Spread risk prediction',
+        'Eco-friendly treatment recommendations',
+      ],
+      img:'https://images.unsplash.com/photo-1530836369250-ef72a3f5cda8',
     },
     {
       id: 'schemes',
@@ -93,7 +111,7 @@ export default function FeaturesPage() {
   ];
 
   const platformFeatures = [
-    { icon: Globe, title: t('home.languages', '22 Languages'), desc: 'Full UI and content in all scheduled Indian languages.' },
+    { icon: Globe, title: t('home.languages', '08 Languages'), desc: 'Full UI and content in all scheduled Indian languages.' },
     { icon: Mic, title: t('home.voiceEnabled', 'Voice Interface'), desc: 'Speak commands in your language for hands-free operation.' },
     { icon: Smartphone, title: t('features.offlineMode.title', 'Offline Mode'), desc: t('features.offlineMode.desc', 'Core features work without internet. Sync when connected.') },
     { icon: Lock, title: t('features.privacy.title', 'Data Privacy'), desc: t('features.privacy.desc', 'End-to-end encryption. You control what buyers see.') },
@@ -113,13 +131,13 @@ export default function FeaturesPage() {
         </div>
         <div className="relative max-w-[1280px] mx-auto px-4 md:px-8 lg:px-12">
           <span className="inline-block px-4 py-1.5 bg-white/10 border border-white/15 text-white/80 text-sm font-bold rounded-full mb-5 backdrop-blur-sm">
-            <Sprout className="w-4 h-4 inline mr-1.5 -mt-0.5" /> {t('home.fiveModules', 'Platform Features')}
+            <Sprout className="w-4 h-4 inline mr-1.5 -mt-0.5" /> {t('home.sixModules', 'Platform Features')}
           </span>
           <h1 className="font-heading text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-5 max-w-3xl">
             {t('home.platformTitle', 'Everything You Need, From Soil to Sale')}
           </h1>
           <p className="text-white/50 text-lg max-w-2xl leading-relaxed">
-            {t('home.platformSubtitle', '5 integrated modules that work together as a data flywheel — improving predictions, pricing, and outcomes every season.')}
+            {t('home.platformSubtitle', '6 integrated modules that work together as a data flywheel — improving predictions, pricing, and outcomes every season.')}
           </p>
         </div>
       </section>
@@ -236,3 +254,5 @@ export default function FeaturesPage() {
     </div>
   );
 }
+
+
