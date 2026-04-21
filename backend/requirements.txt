@@ -1,0 +1,14 @@
+fastapi
+uvicorn
+sqlalchemy
+pyjwt
+pydantic
+python-multipart
+tensorflow
+Pillow
+joblib
+numpy
+scikit-learn
+# For SQLAlchemy if they switch to MySQL later:
+# pymysql
+# cryptography
