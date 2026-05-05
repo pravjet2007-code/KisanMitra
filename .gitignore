@@ -1,11 +1,13 @@
 # Node and Frontend
 node_modules/
 dist/
-.env
+
 .env.local
 
 # Python and Backend
 .venv/
+venv/
+venv_311/
 __pycache__/
 *.py[cod]
 *$py.class
