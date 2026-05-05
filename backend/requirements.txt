@@ -9,6 +9,6 @@ Pillow
 joblib
 numpy
 scikit-learn
-# For SQLAlchemy if they switch to MySQL later:
-# pymysql
-# cryptography
+email-validator>=2.0.0
+psycopg2-binary
+python-dotenv

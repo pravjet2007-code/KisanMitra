@@ -98,7 +98,7 @@ py -3.11 -m venv .venv
 
 pip install -r requirements.txt
 
-uvicorn main:app --reload --port 8000
+uvicorn app.main:app --reload --port 8000
 ```
 
 > ✅ API is live at **`http://localhost:8000`**
