@@ -49,20 +49,36 @@ def read_products(
         "items": items
     }
 
+import os
+import uuid
+
 @router.post("/process-image")
 async def process_image_to_db(file: UploadFile = File(...)):
     """
-    Converts an uploaded image to a Base64 string to be stored directly in the database.
+    Saves an uploaded image to the local file system and returns the relative URL.
     """
     if not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="File must be an image")
     
     try:
+        # Generate a unique filename
+        file_extension = file.filename.split('.')[-1] if '.' in file.filename else 'jpg'
+        unique_filename = f"{uuid.uuid4()}.{file_extension}"
+        
+        # Determine save path
+        save_directory = "static/uploads"
+        file_path = os.path.join(save_directory, unique_filename)
+        
+        # Save the file
         contents = await file.read()
-        base64_data = base64.b64encode(contents).decode("utf-8")
-        # Format as a Data URL for easy rendering in frontend <img> tags
-        data_url = f"data:{file.content_type};base64,{base64_data}"
-        return {"image_data": data_url}
+        with open(file_path, "wb") as f:
+            f.write(contents)
+            
+        # Format the URL (assuming the backend is served at root, or you can prepend server URL)
+        # Using a relative URL so the frontend can prepend its known API base URL
+        image_url = f"/static/uploads/{unique_filename}"
+        
+        return {"image_data": image_url}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to process image: {str(e)}")
 
