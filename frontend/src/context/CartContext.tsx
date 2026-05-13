@@ -17,7 +17,9 @@ interface CartContextValue {
   clearCart: () => void;
 }
 
-const CartContext = createContext<CartContextValue | null>(null);
+export type CartContextType = CartContextValue;
+
+export const CartContext = createContext<CartContextValue | null>(null);
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const { user, isAuthenticated, role } = useAuth();

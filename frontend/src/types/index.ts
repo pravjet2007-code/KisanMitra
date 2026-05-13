@@ -123,3 +123,21 @@ export interface OrderStatusHistory {
   comments?: string;
   created_at: string;
 }
+
+export type AddressCreate = Omit<Address, 'address_id'>;
+export type AddressUpdate = Partial<AddressCreate>;
+
+export interface CreateReviewPayload {
+  product_id: number;
+  reviewer_id: number;
+  rating: number;
+  comment?: string;
+}
+
+export interface FarmerAnalytics {
+  total_sales?: number;
+  total_orders?: number;
+  active_listings?: number;
+  raw?: string;
+  [key: string]: any;
+}
