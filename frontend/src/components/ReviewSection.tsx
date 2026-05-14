@@ -120,43 +120,58 @@ export default function ReviewSection({ productId }: Props) {
 
   // ── render ─────────────────────────────────────────────────────────────────
   return (
-    <section style={styles.section}>
+    <section className="mt-10 py-6 border-t border-border">
       {/* Header */}
-      <div style={styles.header}>
-        <h2 style={styles.title}>Customer Reviews</h2>
+      <div className="flex items-center gap-4 mb-5 flex-wrap">
+        <h2 className="text-xl font-bold m-0 text-dark">Customer Reviews</h2>
         {reviews.length > 0 && (
-          <div style={styles.summary}>
-            <span style={styles.avgNum}>{avg.toFixed(1)}</span>
-            <StarRating value={Math.round(avg)} />
-            <span style={styles.count}>({reviews.length})</span>
+          <div className="flex items-center gap-2">
+            <span className="text-2xl font-extrabold text-amber-500">{avg.toFixed(1)}</span>
+            <div className="flex gap-0.5">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <span key={star} className={`text-xl ${star <= Math.round(avg) ? 'text-amber-500' : 'text-gray-300'}`}>★</span>
+              ))}
+            </div>
+            <span className="text-sm text-muted">({reviews.length})</span>
           </div>
         )}
       </div>
 
       {/* Write a review */}
       {user && !submitted && (
-        <form onSubmit={handleSubmit} style={styles.form}>
-          <p style={styles.formTitle}>Write a Review</p>
-          <div style={styles.formRow}>
-            <label style={styles.label}>Your Rating</label>
-            <StarRating value={rating} onChange={setRating} />
+        <form onSubmit={handleSubmit} className="bg-offwhite border border-border rounded-2xl p-5 mb-7 flex flex-col gap-4 shadow-xs">
+          <p className="font-bold text-base m-0 text-dark">Write a Review</p>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-muted uppercase tracking-wider">Your Rating</label>
+            <div className="flex gap-1">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  type="button"
+                  onClick={() => setRating(star)}
+                  className={`text-2xl transition-transform hover:scale-110 ${star <= rating ? 'text-amber-500' : 'text-gray-300'}`}
+                >
+                  ★
+                </button>
+              ))}
+            </div>
           </div>
-          <div style={styles.formRow}>
-            <label style={styles.label}>Comment</label>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-muted uppercase tracking-wider">Comment</label>
             <textarea
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               required
               rows={3}
               placeholder="Share your experience with this product..."
-              style={styles.textarea}
+              className="border border-border rounded-xl px-4 py-3 text-sm font-sans resize-y outline-none focus:ring-2 focus:ring-sage/20 focus:border-sage bg-white transition-all"
             />
           </div>
-          {submitError && <p style={styles.errorText}>{submitError}</p>}
+          {submitError && <p className="text-red-500 text-xs m-0">{submitError}</p>}
           <button
             type="submit"
             disabled={submitting}
-            style={submitting ? { ...styles.btn, opacity: 0.6 } : styles.btn}
+            className={`self-start bg-sage text-white border-none rounded-xl px-6 py-3 text-sm font-semibold cursor-pointer transition-all hover:bg-sage-dark shadow-sm ${submitting ? 'opacity-60 cursor-not-allowed' : ''}`}
           >
             {submitting ? "Submitting…" : "Submit Review"}
           </button>
@@ -164,38 +179,42 @@ export default function ReviewSection({ productId }: Props) {
       )}
 
       {submitted && (
-        <div style={styles.successBanner}>
-          ✅ Thank you! Your review has been submitted.
+        <div className="bg-sage/10 text-sage-dark px-4 py-3 rounded-xl mb-5 text-sm font-medium flex items-center gap-2 animate-fade-in">
+          <span className="text-lg">✅</span> Thank you! Your review has been submitted.
         </div>
       )}
 
       {!user && (
-        <p style={styles.loginPrompt}>
-          <a href="/auth" style={styles.link}>Sign in</a> to leave a review.
+        <p className="text-sm text-muted mb-5">
+          <a href="/auth" className="text-sage font-semibold no-underline hover:underline">Sign in</a> to leave a review.
         </p>
       )}
 
       {/* Review list */}
-      {loading && <p style={styles.muted}>Loading reviews…</p>}
-      {error && <p style={styles.errorText}>{error}</p>}
+      {loading && <p className="text-sm text-muted">Loading reviews…</p>}
+      {error && <p className="text-red-500 text-sm">{error}</p>}
 
       {!loading && !error && reviews.length === 0 && (
-        <p style={styles.muted}>No reviews yet. Be the first!</p>
+        <p className="text-sm text-muted italic">No reviews yet. Be the first!</p>
       )}
 
-      <div style={styles.list}>
+      <div className="flex flex-col gap-4">
         {reviews.map((r) => (
-          <div key={r.review_id} style={styles.card}>
-            <div style={styles.cardTop}>
-              <div style={styles.avatar}>
+          <div key={r.review_id} className="border border-light rounded-2xl p-4 bg-white shadow-xs hover:shadow-sm transition-shadow">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-9 h-9 rounded-full bg-sage/10 text-sage-dark flex items-center justify-center font-bold text-xs shrink-0 uppercase">
                 {String(r.reviewer_id).slice(-2)}
               </div>
-              <div>
-                <StarRating value={r.rating} />
-                <span style={styles.muted}>{timeAgo(r.created_at)}</span>
+              <div className="flex-1">
+                <div className="flex gap-0.5">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <span key={star} className={`text-sm ${star <= r.rating ? 'text-amber-500' : 'text-gray-200'}`}>★</span>
+                  ))}
+                </div>
+                <p className="text-[11px] text-muted m-0">{timeAgo(r.created_at)}</p>
               </div>
             </div>
-            <p style={styles.commentText}>{r.comment}</p>
+            <p className="m-0 text-sm text-dark leading-relaxed">{r.comment}</p>
           </div>
         ))}
       </div>

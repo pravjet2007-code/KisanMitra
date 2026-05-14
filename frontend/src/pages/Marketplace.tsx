@@ -1,25 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Search, Filter, MapPin, Star, CheckCircle2, Users,
   ChevronDown, Leaf, Package,
-  TrendingUp, ArrowRight
+  TrendingUp, ArrowRight, Loader2, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-
-const allListings = [
-  { id: 1, farmer: 'Available Farmer', score: 4.7, location: 'Punjab', distance: '52 km', crop: 'Wheat HD-2967', qty: '18 Q', price: 2250, grade: 'A', moisture: '11.5%', verified: true, harvest: 'Mar 15', organic: false, category: 'wheat' },
-  { id: 2, farmer: 'Available Farmer', score: 4.2, location: 'Punjab', distance: '78 km', crop: 'Wheat PBW-343', qty: '25 Q', price: 2180, grade: 'A', moisture: '12.1%', verified: true, harvest: 'Mar 18', organic: false, category: 'wheat' },
-  { id: 3, farmer: 'Available Farmer', score: 4.9, location: 'Punjab', distance: '35 km', crop: 'Wheat HD-2967', qty: '12 Q', price: 2300, grade: 'A+', moisture: '11.2%', verified: true, harvest: 'Mar 12', organic: true, category: 'wheat' },
-  { id: 4, farmer: 'Available Farmer', score: 4.5, location: 'Madhya Pradesh', distance: '120 km', crop: 'Soybean JS-335', qty: '30 Q', price: 4200, grade: 'A', moisture: '10.8%', verified: true, harvest: 'Mar 20', organic: false, category: 'soybean' },
-  { id: 5, farmer: 'Available Farmer', score: 4.0, location: 'Maharashtra', distance: '95 km', crop: 'Rice Basmati', qty: '15 Q', price: 3800, grade: 'A', moisture: '13.0%', verified: false, harvest: 'Apr 5', organic: false, category: 'rice' },
-  { id: 6, farmer: 'Available Farmer', score: 4.8, location: 'Punjab', distance: '45 km', crop: 'Mustard Pusa Bold', qty: '10 Q', price: 5100, grade: 'A+', moisture: '8.5%', verified: true, harvest: 'Mar 8', organic: true, category: 'mustard' },
-  { id: 7, farmer: 'Available Farmer', score: 3.8, location: 'Uttar Pradesh', distance: '200 km', crop: 'Chickpea Desi', qty: '20 Q', price: 4800, grade: 'B', moisture: '11.0%', verified: true, harvest: 'Mar 25', organic: false, category: 'chickpea' },
-  { id: 8, farmer: 'Available Farmer', score: 4.6, location: 'Rajasthan', distance: '150 km', crop: 'Wheat Lok-1', qty: '35 Q', price: 2100, grade: 'A', moisture: '11.8%', verified: true, harvest: 'Mar 22', organic: false, category: 'wheat' },
-  { id: 9, farmer: 'Available Farmer', score: 4.3, location: 'Telangana', distance: '180 km', crop: 'Rice Sona Masoori', qty: '40 Q', price: 3200, grade: 'A', moisture: '12.5%', verified: true, harvest: 'Apr 10', organic: false, category: 'rice' },
-];
-
-
 
 export default function Marketplace() {
   const { t } = useTranslation();
@@ -28,22 +14,73 @@ export default function Marketplace() {
   const [sortBy, setSortBy] = useState('price-low');
   const [minScore, setMinScore] = useState(0);
   const [showFilters, setShowFilters] = useState(false);
+  
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const limit = 9;
 
-  const filtered = allListings
-    .filter((l) => {
-      const matchSearch = l.crop.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         l.location.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchCategory = selectedCategory === 'All' || l.category === selectedCategory.toLowerCase();
-      const matchScore = l.score >= minScore;
-      return matchSearch && matchCategory && matchScore;
-    })
-    .sort((a, b) => {
-      if (sortBy === 'price-low') return a.price - b.price;
-      if (sortBy === 'price-high') return b.price - a.price;
-      if (sortBy === 'score') return b.score - a.score;
-      if (sortBy === 'distance') return parseInt(a.distance) - parseInt(b.distance);
-      return 0;
-    });
+  useEffect(() => {
+    setPage(1);
+  }, [searchQuery, selectedCategory, sortBy, minScore]);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const skip = (page - 1) * limit;
+        
+        const params = new URLSearchParams({
+          skip: skip.toString(),
+          limit: limit.toString(),
+          sort_by: sortBy === 'price-low' ? 'price_asc' : sortBy === 'price-high' ? 'price_desc' : 'newest'
+        });
+
+        let qParam = searchQuery;
+        if (selectedCategory !== 'All') {
+          qParam = qParam ? `${qParam} ${selectedCategory}` : selectedCategory;
+        }
+        
+        if (qParam) params.append('q', qParam);
+        if (minScore > 0) params.append('min_rating', minScore.toString());
+
+        const response = await fetch(`http://localhost:8000/api/v1/products/?${params.toString()}`);
+        if (!response.ok) throw new Error('Failed to fetch products');
+        
+        const data = await response.json();
+        setProducts(data.items);
+        setTotalPages(data.pages);
+        setTotalItems(data.total);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // Debounce search
+    const timeoutId = setTimeout(() => {
+      fetchProducts();
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery, selectedCategory, sortBy, minScore, page]);
+
+  const getImageUrl = (product: any) => {
+    if (product.image_url) {
+      if (product.image_url.startsWith('http')) return product.image_url;
+      return `http://localhost:8000${product.image_url}`;
+    }
+    const name = product.name.toLowerCase();
+    if (name.includes('wheat')) return 'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=600&q=80';
+    if (name.includes('rice')) return 'https://images.unsplash.com/photo-1536304993881-070a87e2ffab?w=600&q=80';
+    if (name.includes('mustard')) return 'https://images.unsplash.com/photo-1501004318776-cd2ba4e68be1?w=600&q=80';
+    return 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=600&q=80';
+  };
 
   return (
     <div className="min-h-screen bg-offwhite pt-20 pb-12">
@@ -97,7 +134,6 @@ export default function Marketplace() {
                 <option value="price-low">{t('marketplace.priceLow', 'Price: Low → High')}</option>
                 <option value="price-high">{t('marketplace.priceHigh', 'Price: High → Low')}</option>
                 <option value="score">{t('marketplace.scoreTitle', 'Farmer Score')}</option>
-                <option value="distance">{t('marketplace.distance', 'Distance')}</option>
               </select>
               <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted pointer-events-none" />
             </div>
@@ -109,85 +145,115 @@ export default function Marketplace() {
                 <option value={4.5}>4.5+</option>
               </select>
             </div>
-            <div className="ml-auto text-sm text-muted">{filtered.length} {t('marketplace.listings', 'listings')}</div>
+            <div className="ml-auto text-sm text-muted">{totalItems} {t('marketplace.listings', 'listings')}</div>
           </div>
         </div>
 
         {/* Grid */}
-        {filtered.length === 0 ? (
+        {loading ? (
+          <div className="flex justify-center items-center py-20">
+             <Loader2 className="w-10 h-10 animate-spin text-terracotta" />
+          </div>
+        ) : error ? (
+           <div className="text-center py-20">
+             <p className="text-red-500">{error}</p>
+           </div>
+        ) : products.length === 0 ? (
           <div className="text-center py-20">
             <Package className="w-16 h-16 text-muted mx-auto mb-4" />
             <h3 className="font-heading text-xl font-semibold text-black mb-2">{t('marketplace.noListingsTitle', 'No listings found')}</h3>
             <p className="text-muted">{t('marketplace.noListingsDesc', 'Adjust your filters or search query.')}</p>
           </div>
         ) : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
-            {filtered.map((listing) => (
-              <Link to={`/listing/${listing.id}`} key={listing.id} className="bg-white rounded-2xl shadow-xs border border-border overflow-hidden card-hover group">
-                <div className="relative h-40 overflow-hidden">
-                  <img
-                    src={`https://images.unsplash.com/photo-${listing.category === 'wheat' ? '1574943320219-553eb213f72d' : listing.category === 'rice' ? '1536304993881-070a87e2ffab' : listing.category === 'mustard' ? '1501004318776-cd2ba4e68be1' : '1416879595882-3373a0480b5b'}?w=600&q=80`}
-                    alt={listing.crop}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                  <div className="absolute top-3 right-3 flex gap-1.5">
-                    {listing.verified && (
+          <>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
+              {products.map((product) => (
+                <Link to={`/listing/${product.product_id}`} key={product.product_id} className="bg-white rounded-2xl shadow-xs border border-border overflow-hidden card-hover group">
+                  <div className="relative h-40 overflow-hidden">
+                    <img
+                      src={getImageUrl(product)}
+                      alt={product.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                    <div className="absolute top-3 right-3 flex gap-1.5">
                       <span className="w-7 h-7 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-sm" title="Verified">
                         <CheckCircle2 className="w-4 h-4 text-white" />
                       </span>
-                    )}
-
-                    {listing.organic && (
-                      <span className="w-7 h-7 bg-amber/30 rounded-lg flex items-center justify-center backdrop-blur-sm" title="Organic">
-                        <Leaf className="w-4 h-4 text-white" />
-                      </span>
-                    )}
-                  </div>
-                  <div className="absolute bottom-3 left-4">
-                    <span className="text-xs text-white/70 uppercase tracking-wider">{t(`marketplaceContext.categories.${listing.category}`, listing.category)}</span>
-                    <h3 className="font-heading text-lg font-bold text-white">{t(`marketplaceContext.crops.${listing.category}`, listing.crop)}</h3>
-                  </div>
-                </div>
-
-                <div className="p-5">
-                  <div className="flex items-baseline justify-between mb-4">
-                    <p className="font-heading text-2xl font-bold text-black">₹{listing.price.toLocaleString()}<span className="text-sm font-normal text-muted">/q</span></p>
-                    <span className="text-sm font-semibold text-sage">{listing.qty}</span>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2 mb-4">
-                    <div className="bg-offwhite rounded-lg p-2.5">
-                      <p className="text-[10px] text-muted uppercase tracking-wider">{t('marketplaceContext.grade', 'Grade')}</p>
-                      <p className="text-sm font-semibold text-black">{listing.grade}</p>
+                      {product.farming_method === 'organic' && (
+                        <span className="w-7 h-7 bg-amber/30 rounded-lg flex items-center justify-center backdrop-blur-sm" title="Organic">
+                          <Leaf className="w-4 h-4 text-white" />
+                        </span>
+                      )}
                     </div>
-                    <div className="bg-offwhite rounded-lg p-2.5">
-                      <p className="text-[10px] text-muted uppercase tracking-wider">{t('marketplaceContext.moisture', 'Moisture')}</p>
-                      <p className="text-sm font-semibold text-black">{listing.moisture}</p>
+                    <div className="absolute bottom-3 left-4">
+                      <span className="text-xs text-white/70 uppercase tracking-wider">{product.type || 'PRODUCE'}</span>
+                      <h3 className="font-heading text-lg font-bold text-white">{product.name}</h3>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between pt-3 border-t border-light">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 bg-sage/10 rounded-full flex items-center justify-center">
-                        <Users className="w-4 h-4 text-sage" />
+                  <div className="p-5">
+                    <div className="flex items-baseline justify-between mb-4">
+                      <p className="font-heading text-2xl font-bold text-black">₹{product.price_per_unit}<span className="text-sm font-normal text-muted">/{product.unit_of_measure}</span></p>
+                      <span className="text-sm font-semibold text-sage">{product.stock_quantity} {product.unit_of_measure}</span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 mb-4">
+                      <div className="bg-offwhite rounded-lg p-2.5">
+                        <p className="text-[10px] text-muted uppercase tracking-wider">{t('marketplaceContext.grade', 'Grade')}</p>
+                        <p className="text-sm font-semibold text-black">A</p>
                       </div>
-                      <div className="flex items-center gap-1.5 text-xs text-muted">
-                        <Star className="w-3 h-3 text-amber fill-amber" />
-                        <span className="font-semibold text-dark">{listing.score}</span>
-                        <span>·</span>
-                        <MapPin className="w-3 h-3" />
-                        <span>{listing.distance}</span>
+                      <div className="bg-offwhite rounded-lg p-2.5">
+                        <p className="text-[10px] text-muted uppercase tracking-wider">{t('marketplaceContext.moisture', 'Shelf Life')}</p>
+                        <p className="text-sm font-semibold text-black">{product.shelf_life_days || '-'} days</p>
                       </div>
                     </div>
-                    <div className="w-8 h-8 bg-light rounded-lg flex items-center justify-center group-hover:bg-terracotta transition-colors">
-                      <ArrowRight className="w-4 h-4 text-dark group-hover:text-white transition-colors" />
+
+                    <div className="flex items-center justify-between pt-3 border-t border-light">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 bg-sage/10 rounded-full flex items-center justify-center">
+                          <Users className="w-4 h-4 text-sage" />
+                        </div>
+                        <div className="flex items-center gap-1.5 text-xs text-muted">
+                          <Star className="w-3 h-3 text-amber fill-amber" />
+                          <span className="font-semibold text-dark">{product.average_rating || 0}</span>
+                          <span>·</span>
+                          <MapPin className="w-3 h-3" />
+                          <span>Dist.</span>
+                        </div>
+                      </div>
+                      <div className="w-8 h-8 bg-light rounded-lg flex items-center justify-center group-hover:bg-terracotta transition-colors">
+                        <ArrowRight className="w-4 h-4 text-dark group-hover:text-white transition-colors" />
+                      </div>
                     </div>
                   </div>
-                </div>
-              </Link>
-            ))}
-          </div>
+                </Link>
+              ))}
+            </div>
+
+            {/* Pagination controls */}
+            {totalPages > 1 && (
+              <div className="flex justify-center items-center gap-2 mt-10">
+                <button
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="p-2 rounded-xl bg-white border border-border text-dark hover:bg-light disabled:opacity-50 transition-colors"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <span className="text-sm font-medium text-dark px-4 py-2 bg-white border border-border rounded-xl">
+                  Page {page} of {totalPages}
+                </span>
+                <button
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                  className="p-2 rounded-xl bg-white border border-border text-dark hover:bg-light disabled:opacity-50 transition-colors"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </div>
+            )}
+          </>
         )}
 
         {/* Market Insights */}

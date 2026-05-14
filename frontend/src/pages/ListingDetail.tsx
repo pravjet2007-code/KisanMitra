@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
+import ReviewSection from '../components/ReviewSection';
 import {
   Star, MapPin, CheckCircle2, Users, Leaf, Bug, Microscope,
   Droplets, Shield, CreditCard, Truck,
@@ -8,6 +9,7 @@ import {
 } from 'lucide-react';
 
 export default function ListingDetail() {
+  const { id } = useParams<{ id: string }>();
   const [activeTab, setActiveTab] = useState<'details' | 'quality' | 'farmer'>('details');
   const [showOffer, setShowOffer] = useState(false);
   const [offerPrice, setOfferPrice] = useState('2250');
@@ -217,6 +219,9 @@ export default function ListingDetail() {
                 </div>
               )}
             </div>
+            
+            {/* Review Section */}
+            <ReviewSection productId={Number(id) || 1} />
           </div>
 
           {/* Right — Actions */}

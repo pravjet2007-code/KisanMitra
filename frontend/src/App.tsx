@@ -2,6 +2,7 @@ import { HashRouter as Router, Routes, Route, Navigate, useLocation } from 'reac
 import { useEffect } from 'react';
 import { AuthProvider } from './context/AuthContext';
 import { useAuth } from './context/AuthContext';
+import { CartProvider } from './context/CartContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import KisanBot from './components/KisanBot';
@@ -13,6 +14,10 @@ import FarmerDashboard from './pages/FarmerDashboard';
 import BuyerDashboard from './pages/BuyerDashboard';
 import Marketplace from './pages/Marketplace';
 import ListingDetail from './pages/ListingDetail';
+import CartPage from './pages/CartPage';
+import OrdersPage from './pages/OrdersPage';
+import OrderTrackingPage from './pages/OrderTrackingPage';
+import PaymentPage from './pages/PaymentPage';
 import type { UserRole } from './types';
 
 function ScrollToTop() {
@@ -64,74 +69,108 @@ function DashboardLayout({ children }: { children: React.ReactNode }) {
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <ScrollToTop />
-        <Routes>
-          {/* ── Public Routes ── */}
-          <Route path="/" element={
-            <PublicLayout showBot>
-              <HomePage />
-            </PublicLayout>
-          } />
+      <CartProvider>
+        <Router>
+          <ScrollToTop />
+          <Routes>
+            {/* ── Public Routes ── */}
+            <Route path="/" element={
+              <PublicLayout showBot>
+                <HomePage />
+              </PublicLayout>
+            } />
 
-          <Route path="/features" element={
-            <PublicLayout>
-              <FeaturesPage />
-            </PublicLayout>
-          } />
+            <Route path="/features" element={
+              <PublicLayout>
+                <FeaturesPage />
+              </PublicLayout>
+            } />
 
-          <Route path="/marketplace" element={
-            <PublicLayout>
-              <Marketplace />
-            </PublicLayout>
-          } />
+            <Route path="/marketplace" element={
+              <PublicLayout>
+                <Marketplace />
+              </PublicLayout>
+            } />
 
-          <Route path="/listing/:id" element={
-            <PublicLayout>
-              <ListingDetail />
-            </PublicLayout>
-          } />
+            <Route path="/listing/:id" element={
+              <PublicLayout>
+                <ListingDetail />
+              </PublicLayout>
+            } />
 
-          {/* Auth page — full screen, no Navbar/Footer */}
-          <Route path="/auth" element={<AuthPage />} />
+            {/* Auth page — full screen, no Navbar/Footer */}
+            <Route path="/auth" element={<AuthPage />} />
 
-          {/* ── Smart Dashboard Redirect ── */}
-          <Route path="/dashboard" element={<RoleDashboardRedirect />} />
+            <Route path="/cart" element={
+              <ProtectedRoute>
+                <PublicLayout>
+                  <CartPage />
+                </PublicLayout>
+              </ProtectedRoute>
+            } />
 
-          {/* ── Protected Dashboard Routes ── */}
-          <Route path="/dashboard/farmer" element={
-            <ProtectedRoute role="farmer">
-              <DashboardLayout>
-                <FarmerDashboard />
-              </DashboardLayout>
-            </ProtectedRoute>
-          } />
+            <Route path="/orders" element={
+              <ProtectedRoute>
+                <DashboardLayout>
+                  <OrdersPage />
+                </DashboardLayout>
+              </ProtectedRoute>
+            } />
 
-          <Route path="/dashboard/buyer" element={
-            <ProtectedRoute role="buyer">
-              <DashboardLayout>
-                <BuyerDashboard />
-              </DashboardLayout>
-            </ProtectedRoute>
-          } />
+            <Route path="/orders/:id" element={
+              <ProtectedRoute>
+                <DashboardLayout>
+                  <OrderTrackingPage />
+                </DashboardLayout>
+              </ProtectedRoute>
+            } />
 
-          <Route path="/dashboard/seller" element={
-            <ProtectedRoute role="seller">
-              <DashboardLayout>
-                {/* SellerDashboard — same as BuyerDashboard for now with seller context */}
-                <BuyerDashboard />
-              </DashboardLayout>
-            </ProtectedRoute>
-          } />
+            <Route path="/payment/:orderId" element={
+              <ProtectedRoute>
+                <PublicLayout>
+                  <PaymentPage />
+                </PublicLayout>
+              </ProtectedRoute>
+            } />
 
-          {/* ── Legacy URL redirects (keep old links working) ── */}
-          <Route path="/farmer-dashboard" element={<Navigate to="/dashboard/farmer" replace />} />
-          <Route path="/buyer-dashboard" element={<Navigate to="/dashboard/buyer" replace />} />
+            {/* ── Smart Dashboard Redirect ── */}
+            <Route path="/dashboard" element={<RoleDashboardRedirect />} />
 
-          {/* 404 fallback */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Router>
+            {/* ── Protected Dashboard Routes ── */}
+            <Route path="/dashboard/farmer" element={
+              <ProtectedRoute role="farmer">
+                <DashboardLayout>
+                  <FarmerDashboard />
+                </DashboardLayout>
+              </ProtectedRoute>
+            } />
+
+            <Route path="/dashboard/buyer" element={
+              <ProtectedRoute role="buyer">
+                <DashboardLayout>
+                  <BuyerDashboard />
+                </DashboardLayout>
+              </ProtectedRoute>
+            } />
+
+            <Route path="/dashboard/seller" element={
+              <ProtectedRoute role="seller">
+                <DashboardLayout>
+                  {/* SellerDashboard — same as BuyerDashboard for now with seller context */}
+                  <BuyerDashboard />
+                </DashboardLayout>
+              </ProtectedRoute>
+            } />
+
+            {/* ── Legacy URL redirects (keep old links working) ── */}
+            <Route path="/farmer-dashboard" element={<Navigate to="/dashboard/farmer" replace />} />
+            <Route path="/buyer-dashboard" element={<Navigate to="/dashboard/buyer" replace />} />
+
+            {/* 404 fallback */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Router>
+      </CartProvider>
     </AuthProvider>
   );
 }
