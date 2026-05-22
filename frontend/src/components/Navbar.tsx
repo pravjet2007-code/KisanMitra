@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, Sprout, ChevronDown, Globe, Wheat, ShoppingCart, Store, LogOut, User, LayoutDashboard } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
+import { useCart } from '../context/CartContext';
 
 const LANGUAGES = [
   { code: 'en', label: 'English' },
@@ -33,6 +34,7 @@ export default function Navbar() {
   const navigate  = useNavigate();
   const { t, i18n } = useTranslation();
   const { isAuthenticated, user, role, logout } = useAuth();
+  const { itemCount } = useCart();
   const userMenuRef = useRef<HTMLDivElement>(null);
   const langMenuRef = useRef<HTMLDivElement>(null);
 
@@ -152,6 +154,21 @@ export default function Navbar() {
 
             {/* Right side */}
             <div className="flex items-center gap-2">
+              {/* Cart Icon */}
+              <Link
+                to="/cart"
+                className={`relative p-2 rounded-lg transition-colors flex items-center justify-center ${
+                  scrolled || !isHome ? 'text-black hover:bg-black/5' : 'text-white hover:bg-white/10'
+                }`}
+              >
+                <ShoppingCart className="w-5 h-5" />
+                {itemCount > 0 && (
+                  <span className="absolute top-0 right-0 inline-flex items-center justify-center w-4 h-4 text-[10px] font-bold text-white bg-terracotta rounded-full -translate-y-1/4 translate-x-1/4">
+                    {itemCount}
+                  </span>
+                )}
+              </Link>
+
               {/* Language switcher */}
               <div className="relative" ref={langMenuRef}>
                 <button
@@ -316,6 +333,25 @@ export default function Navbar() {
                   </button>
                 ))}
               </div>
+            </div>
+
+            {/* Mobile Cart Link */}
+            <div className="border-t border-border pt-4 mb-4">
+              <Link
+                to="/cart"
+                onClick={() => setMobileOpen(false)}
+                className="flex items-center justify-between px-4 py-3 bg-light rounded-xl transition-colors hover:bg-terracotta/5"
+              >
+                <div className="flex items-center gap-3">
+                  <ShoppingCart className="w-5 h-5 text-dark" />
+                  <span className="font-semibold text-dark">My Cart</span>
+                </div>
+                {itemCount > 0 && (
+                  <span className="inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold text-white bg-terracotta rounded-full">
+                    {itemCount}
+                  </span>
+                )}
+              </Link>
             </div>
 
             {/* Auth CTA */}
