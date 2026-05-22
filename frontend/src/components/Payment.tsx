@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { capturePayment } from '../utils/api';
 import { useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 
 interface PaymentProcessorProps {
   orderId: number;
@@ -27,7 +26,6 @@ const PaymentProcessor: React.FC<PaymentProcessorProps> = ({
   const [selectedMethod, setSelectedMethod] = useState<string>('');
   const [error, setError] = useState<string>('');
   const navigate = useNavigate();
-  const { t } = useTranslation();
 
   const paymentMethods: PaymentMethod[] = [
     {

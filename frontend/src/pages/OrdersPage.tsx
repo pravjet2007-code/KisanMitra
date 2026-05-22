@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { ordersApi, parseOrderAmount, ORDER_STATUS_LABEL } from '../utils/api';
 import type { ApiOrder, OrderStatus } from '../utils/api';
@@ -289,7 +288,6 @@ const FILTER_OPTIONS: { label: string; value: OrderStatus | 'ALL' }[] = [
 // ── Main page ─────────────────────────────────────────────────────
 export default function OrdersPage() {
   const { user } = useAuth();
-  const { t } = useTranslation();
   const [orders, setOrders]       = useState<ApiOrder[]>([]);
   const [loading, setLoading]     = useState(true);
   const [error, setError]         = useState<string | null>(null);

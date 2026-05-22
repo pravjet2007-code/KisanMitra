@@ -69,7 +69,7 @@ export default function FarmerAnalyticsWidget() {
         <div style={styles.alertBox}>
           <p style={styles.alertTitle}>⚠️ Low Stock Alerts</p>
           <ul style={styles.alertList}>
-            {lowStock.map((item) => (
+            {lowStock.map((item: any) => (
               <li key={item.product_id} style={styles.alertItem}>
                 <span style={styles.alertName}>{item.product_name}</span>
                 <span style={styles.alertBadge}>

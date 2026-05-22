@@ -29,13 +29,15 @@ def read_products(
     min_price: Optional[float] = Query(None, description="Minimum price"),
     max_price: Optional[float] = Query(None, description="Maximum price"),
     min_rating: Optional[int] = Query(None, description="Minimum average rating"),
-    sort_by: Optional[str] = Query("newest", description="Sorting: newest, price_asc, price_desc"),
+    farming_method: Optional[str] = Query(None, description="Filter by farming method (organic, traditional)"),
+    sort_by: Optional[str] = Query("newest", description="Sorting: newest, price_asc, price_desc, score"),
     db: Session = Depends(get_db)
 ):
     items, total = crud_product.get_products(
         db, skip=skip, limit=limit, q=q, 
         category_id=category_id, min_price=min_price, 
-        max_price=max_price, min_rating=min_rating, sort_by=sort_by
+        max_price=max_price, min_rating=min_rating, 
+        farming_method=farming_method, sort_by=sort_by
     )
     
     pages = (total + limit - 1) // limit if limit > 0 else 1
@@ -48,6 +50,14 @@ def read_products(
         "pages": pages,
         "items": items
     }
+
+@router.get("/categories", response_model=List[product.Category])
+def read_categories(db: Session = Depends(get_db)):
+    """
+    Get all active product categories from the database.
+    """
+    return db.query(models.Category).all()
+
 
 import os
 import uuid

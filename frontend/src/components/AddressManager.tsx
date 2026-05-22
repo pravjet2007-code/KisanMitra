@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
 import { MapPin, Plus, Pencil, Trash2, Star, X, Check, Home, Briefcase, Tractor, MoreHorizontal } from "lucide-react";
 import { addressAPI } from "../utils/api";
-import type { Address, AddressCreate, AddressUpdate } from "../types";
+import type { Address, AddressCreate } from "../types";
 
 interface Props {
   userId: number;
 }
 
-const EMPTY_FORM: AddressUpdate = {
+type AddressFormState = Omit<Address, 'address_id' | 'user_id'>;
+
+const EMPTY_FORM: AddressFormState = {
   address_type: "home",
   street_address: "",
   city: "",
@@ -79,7 +81,7 @@ export default function AddressManager({ userId }: Props) {
 
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [form, setForm] = useState<AddressUpdate>(EMPTY_FORM);
+  const [form, setForm] = useState<AddressFormState>(EMPTY_FORM);
   const [formError, setFormError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);

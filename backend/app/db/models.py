@@ -41,6 +41,12 @@ class User(Base):
     user_uuid = Column(String(36), unique=True, index=True, server_default=func.gen_random_uuid()) # Added UUID
     is_verified = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    farm_size = Column(String(50), nullable=True)
+    crop_type = Column(String(100), nullable=True)
+    business_name = Column(String(255), nullable=True)
+    business_type = Column(String(100), nullable=True)
+    preferred_language = Column(String(50), nullable=True, default="en")
+
 
     addresses = relationship("Address", back_populates="user")
     products = relationship("Product", back_populates="seller")

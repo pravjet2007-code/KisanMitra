@@ -61,7 +61,7 @@ function authHeaders(customToken?: string): Record<string, string> {
 // ── Products ───────────────────────────────────────────────────────
 import type { Product, Address, AddressCreate, AddressUpdate, Review, CreateReviewPayload, FarmerAnalytics } from '../types';
 
-export type ApiProductType = 'PRODUCE' | 'GRAIN' | 'DAIRY' | 'PROCESSED' | 'SEEDS' | 'FERTILIZER';
+export type ApiProductType = 'PRODUCE' | 'INPUT';
 
 export interface ApiProduct {
     product_id: number;
@@ -194,27 +194,29 @@ export const productsApi = {
             method: 'POST',
             body: formData,
         });
-        return handleResponse<string>(res);
+        const data = await handleResponse<{ image_data: string }>(res);
+        return data.image_data;
+    },
+
+    getCategories: async (): Promise<{ category_id: number; name: string; parent_category_id?: number }[]> => {
+        const res = await fetch(`${BASE_URL}/api/v1/products/categories`);
+        return handleResponse<{ category_id: number; name: string; parent_category_id?: number }[]>(res);
     },
 };
 
 // ── Type mappers ───────────────────────────────────────────────────
 const typeMap: Record<ApiProductType, Product['type']> = {
     PRODUCE: 'fresh_produce',
-    GRAIN: 'grain',
-    DAIRY: 'dairy',
-    PROCESSED: 'processed',
-    SEEDS: 'seeds',
-    FERTILIZER: 'fertilizer',
+    INPUT: 'seeds',
 };
 
 export const typeMapReverse: Record<Product['type'], ApiProductType> = {
     fresh_produce: 'PRODUCE',
-    grain: 'GRAIN',
-    dairy: 'DAIRY',
-    processed: 'PROCESSED',
-    seeds: 'SEEDS',
-    fertilizer: 'FERTILIZER',
+    grain: 'PRODUCE',
+    dairy: 'PRODUCE',
+    processed: 'PRODUCE',
+    seeds: 'INPUT',
+    fertilizer: 'INPUT',
 };
 
 export function toLocalProduct(p: ApiProduct): Product {
@@ -329,6 +331,14 @@ export const ordersApi = {
     /** GET /api/v1/orders/buyer/{buyer_id} — all orders for a buyer */
     listByBuyer: async (buyer_id: number): Promise<ApiOrder[]> => {
         const res = await fetch(`${BASE_URL}/api/v1/orders/buyer/${buyer_id}`, {
+            headers: authHeaders(),
+        });
+        return handleResponse<ApiOrder[]>(res);
+    },
+
+    /** GET /api/v1/orders/seller/{seller_id} — all orders containing products from this seller */
+    listBySeller: async (seller_id: number): Promise<ApiOrder[]> => {
+        const res = await fetch(`${BASE_URL}/api/v1/orders/seller/${seller_id}`, {
             headers: authHeaders(),
         });
         return handleResponse<ApiOrder[]>(res);
@@ -597,4 +607,133 @@ export const capturePayment = async (
   }
 
   return response.json();
+};
+
+// ── Schemes API ───────────────────────────────────────────────────────────
+export interface Scheme {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  benefits: string[];
+  official_url: string;
+  criteria: {
+    min_farm_size: number;
+    max_farm_size: number | null;
+    crops: string[];
+    states: string[];
+  };
+}
+
+export const schemesApi = {
+  list: async (category?: string): Promise<Scheme[]> => {
+    try {
+      const url = category && category.toLowerCase() !== 'all'
+        ? `${BASE_URL}/api/v1/schemes?category=${encodeURIComponent(category)}`
+        : `${BASE_URL}/api/v1/schemes`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('API failed');
+      return await handleResponse<Scheme[]>(res);
+    } catch (e) {
+      console.warn("Schemes API failed, falling back to static offline backup.", e);
+      const mockDb: Scheme[] = [
+        {
+          id: "pm-kisan",
+          name: "PM Kisan Samman Nidhi",
+          description: "Direct income support of ₹6,000 per year in three equal installments to all landholding farmer families across India.",
+          category: "Income Support",
+          benefits: [
+            "₹6,000 per year paid in three equal installments of ₹2,000 directly into the bank accounts of farmers.",
+            "100% funding from the Central Government of India.",
+            "Helps meet financial requirements for agriculture inputs and household needs."
+          ],
+          official_url: "https://pmkisan.gov.in/",
+          criteria: { min_farm_size: 0.01, max_farm_size: null, crops: ["all"], states: ["all"] }
+        },
+        {
+          id: "kcc",
+          name: "Kisan Credit Card (KCC)",
+          description: "Concessional and timely credit for farmers to meet their cultivation, post-harvest, and household consumption needs.",
+          category: "Credit",
+          benefits: [
+            "Concessional interest rate of 4% per annum upon timely repayment of loans.",
+            "Flexible credit limit based on landholding size, soil quality, and cropping pattern.",
+            "Coverage for crop insurance and low-cost personal accident insurance.",
+            "No collateral required for loans up to ₹1.6 Lakhs."
+          ],
+          official_url: "https://www.myscheme.gov.in/schemes/kcc",
+          criteria: { min_farm_size: 0, max_farm_size: null, crops: ["all"], states: ["all"] }
+        },
+        {
+          id: "pmfby",
+          name: "PM Fasal Bima Yojana",
+          description: "Comprehensive crop insurance scheme protecting farmers against crop losses from natural calamities, pests, and diseases.",
+          category: "Insurance",
+          benefits: [
+            "Extremely low premium rates: 1.5% for Rabi crops, 2.0% for Kharif crops, and 5% for commercial/horticultural crops.",
+            "Full claim payout against verified yield losses based on weather and crop-cutting experiments.",
+            "Covers post-harvest losses and localized calamities like hailstorms and landslides."
+          ],
+          official_url: "https://pmfby.gov.in/",
+          criteria: { min_farm_size: 0, max_farm_size: null, crops: ["Wheat", "Rice", "Mustard", "Soybean", "Chickpea", "Cotton", "Sugarcane"], states: ["all"] }
+        },
+        {
+          id: "soil-health",
+          name: "Soil Health Card",
+          description: "Provides crop-wise fertilizer recommendations based on scientific soil testing, helping farmers optimize crop yields.",
+          category: "Soil",
+          benefits: [
+            "Free detailed report of soil nutrient status (12 parameters: N, P, K, pH, etc.).",
+            "Customized dosage recommendations for chemical and organic fertilizers.",
+            "Improves soil fertility and reduces input cost by avoiding over-fertilization."
+          ],
+          official_url: "https://www.soilhealth.dac.gov.in/",
+          criteria: { min_farm_size: 0, max_farm_size: null, crops: ["all"], states: ["all"] }
+        },
+        {
+          id: "enam",
+          name: "eNAM (National Agriculture Market)",
+          description: "A pan-India electronic trading portal networking existing APMC mandis to create a unified national market for agricultural commodities.",
+          category: "Marketplace",
+          benefits: [
+            "Direct access to online buyers across the country, cutting middle-men margins.",
+            "Real-time transparent price discovery based on local and national demand.",
+            "Immediate digital payment settlement directly into bank accounts."
+          ],
+          official_url: "https://www.enam.gov.in/",
+          criteria: { min_farm_size: 0, max_farm_size: null, crops: ["all"], states: ["all"] }
+        },
+        {
+          id: "fertilizer-subsidy",
+          name: "Fertilizer Subsidy (PM-PRANAM)",
+          description: "Statutory controlled chemical fertilizers like Urea and nutrient-based fertilizers like DAP are provided at heavily subsidized rates.",
+          category: "Subsidies",
+          benefits: [
+            "Urea and DAP available at a fraction of their global market prices.",
+            "Ensures uninterrupted supply of essential nutrients for crop growth.",
+            "Promotes balanced fertilizer usage through PM-PRANAM alternative incentives."
+          ],
+          official_url: "https://www.myscheme.gov.in",
+          criteria: { min_farm_size: 0, max_farm_size: null, crops: ["all"], states: ["all"] }
+        },
+        {
+          id: "pmksy",
+          name: "Pradhan Mantri Krishi Sinchayee Yojana",
+          description: "Focuses on developing irrigation infrastructure, water harvesting, and extending high-efficiency micro-irrigation systems to every farm.",
+          category: "Irrigation",
+          benefits: [
+            "Subsidy up to 55% for Small/Marginal farmers and 45% for others on drip and sprinkler irrigation installations.",
+            "Enhances water utilization efficiency ('More crop per drop').",
+            "Reduces weeding costs and power consumption through precise water feeding."
+          ],
+          official_url: "https://pmksy.gov.in/",
+          criteria: { min_farm_size: 0.1, max_farm_size: null, crops: ["all"], states: ["all"] }
+        }
+      ];
+      if (category && category.toLowerCase() !== 'all') {
+        return mockDb.filter(s => s.category.toLowerCase() === category.toLowerCase());
+      }
+      return mockDb;
+    }
+  }
 };

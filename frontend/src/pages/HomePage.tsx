@@ -2,23 +2,15 @@ import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import {
   Sprout, Bug, TrendingUp, Shield, ChevronRight,
-  Leaf, BarChart3, Users, ShoppingCart,
-  ArrowRight, CheckCircle2, Globe, Smartphone,
+  Leaf, BarChart3, Users,
+  ArrowRight, CheckCircle2, Globe,
   Mic, Play, ChevronDown, Wheat, ScanLine, Lock,
-  CircleDollarSign, FileCheck, Target, Truck, BookOpen, Microscope
+  FileCheck, Target, Truck, BookOpen, Microscope
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 const HERO_IMG = 'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=1920&q=80';
-const FARM_IMG = 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=800&q=80';
 const HARVEST_IMG = 'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=800&q=80';
-
-const stats = [
-  { value: '50K+', labelKey: 'home.stats.farmers', icon: Users },
-  { value: '5,000+', labelKey: 'home.stats.buyers', icon: ShoppingCart },
-  { value: '₹500 Cr', labelKey: 'home.stats.gmv', icon: CircleDollarSign },
-  { value: '08', labelKey: 'home.stats.languages', icon: Globe },
-];
 
 const modulesData = [
   {
@@ -77,29 +69,7 @@ const modulesData = [
   },
 ];
 
-const howItWorksData = [
-  {
-    step: '01',
-    icon: Smartphone,
-    img: FARM_IMG,
-    title: 'Set Up Your Farm Profile',
-    desc: 'Register your farm, connect IoT soil sensors, and set your crop preferences in minutes.',
-  },
-  {
-    step: '02',
-    icon: BookOpen,
-    img: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800&q=80',
-    title: 'Get AI-Driven Insights',
-    desc: 'Receive real-time recommendations on soil health, pest control, and government schemes tailored to your farm.',
-  },
-  {
-    step: '03',
-    icon: ShoppingCart,
-    img: HARVEST_IMG,
-    title: 'Sell at the Best Price',
-    desc: 'List your produce, connect with verified buyers, and receive instant UPI payments with escrow protection.',
-  },
-];
+
 
 const journeyStepsData = [
   {

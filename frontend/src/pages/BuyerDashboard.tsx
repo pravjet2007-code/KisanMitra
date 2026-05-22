@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   BarChart3, TrendingUp, MapPin, Bell,
@@ -7,17 +7,39 @@ import {
   Truck, User, Upload
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../context/AuthContext';
 
 type Tab = 'overview' | 'forecast' | 'listings' | 'orders' | 'analytics' | 'traceability' | 'profile';
 
 export default function BuyerDashboard() {
   const { t } = useTranslation();
+  const { user, updateProfile, refreshProfile } = useAuth();
   const [activeTab, setActiveTab] = useState<Tab>('overview');
-  const [profileSetup, setProfileSetup] = useState(false);
-  const [businessName, setBusinessName] = useState('');
-  const [businessType, setBusinessType] = useState('');
-  const [location, setLocation] = useState('');
-  const [cropPrefs, setCropPrefs] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Derive profileSetup from real user data
+  const profileSetup = !!(user?.full_name && (user?.business_name || user?.location));
+
+  // Editable profile fields — pre-populated from AuthContext user
+  const [businessName, setBusinessName] = useState(user?.business_name || user?.full_name || '');
+  const [businessType, setBusinessType] = useState(user?.business_type || '');
+  const [location, setLocation] = useState(user?.location || '');
+  const [cropPrefs, setCropPrefs] = useState(user?.crop_type || '');
+
+  // Re-sync when user context updates (e.g. after async profile fetch)
+  useEffect(() => {
+    if (user?.business_name) setBusinessName(user.business_name);
+    else if (user?.full_name) setBusinessName(user.full_name);
+    if (user?.business_type) setBusinessType(user.business_type);
+    if (user?.location) setLocation(user.location);
+    if (user?.crop_type) setCropPrefs(user.crop_type);
+  }, [user]);
+
+  // On mount: always fetch the latest profile from the DB
+  useEffect(() => {
+    refreshProfile();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const tabs: { key: Tab; label: string; icon: React.ElementType }[] = [
     { key: 'overview', label: t('buyerDash.tabs.overview', 'Overview'), icon: BarChart3 },
@@ -29,10 +51,21 @@ export default function BuyerDashboard() {
     { key: 'profile', label: t('buyerDash.tabs.profile', 'Profile'), icon: User },
   ];
 
-  const handleProfileSave = () => {
-    if (businessName && location) {
-      setProfileSetup(true);
+  const handleProfileSave = async () => {
+    if (!businessName || !location) return;
+    setIsSaving(true);
+    try {
+      await updateProfile({
+        business_name: businessName,
+        business_type: businessType,
+        location,
+        crop_type: cropPrefs,
+      });
       setActiveTab('overview');
+    } catch (err) {
+      console.error('Profile save failed:', err);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -44,17 +77,19 @@ export default function BuyerDashboard() {
           <div>
             <div className="flex items-center gap-3 mb-1">
               <h1 className="font-heading text-2xl md:text-3xl font-bold text-black">
-                {profileSetup ? t('fd.overview.welcomeTitle', '{{name}} Dashboard', { name: businessName }) : t('buyerDash.title', 'Buyer Dashboard')}
+                {user?.full_name
+                  ? t('fd.overview.welcomeTitle', 'Namaste, {{name}}! 🙏', { name: user.full_name })
+                  : t('buyerDash.title', 'Buyer Dashboard')}
               </h1>
-              {profileSetup && (
+              {user?.is_verified && (
                 <span className="inline-flex items-center gap-1 px-3 py-1 bg-info/10 text-info text-xs font-semibold rounded-full">
                   <CheckCircle2 className="w-3.5 h-3.5" /> {t('common.verified', 'Verified')}
                 </span>
               )}
             </div>
             <p className="text-medium text-sm flex items-center gap-2">
-              {profileSetup ? (
-                <><Building2 className="w-4 h-4 text-info" /> {businessType} · {location} · {cropPrefs}</>
+              {user?.location ? (
+                <><MapPin className="w-4 h-4 text-info" /> {user.location}{businessType ? ` · ${businessType}` : ''}</>
               ) : (
                 t('bd.overview.welcomeSub', 'Set up your business profile to start procurement')
               )}
@@ -134,8 +169,14 @@ export default function BuyerDashboard() {
                     <p className="text-sm text-muted">{t('bd.setup.uploadDst', 'Click to upload verification documents')}</p>
                   </div>
                 </div>
-                <button onClick={handleProfileSave} className="w-full py-4 bg-info text-white font-heading font-bold rounded-xl hover:bg-info/90 transition-all shadow-md text-base">
-                  {t('bd.setup.submit', 'Submit for Verification')}
+                <button
+                  onClick={handleProfileSave}
+                  disabled={isSaving || !businessName || !location}
+                  className="w-full py-4 bg-info text-white font-heading font-bold rounded-xl hover:bg-info/90 transition-all shadow-md text-base disabled:opacity-60 flex items-center justify-center gap-2"
+                >
+                  {isSaving ? (
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : t('bd.setup.submit', 'Save Profile')}
                 </button>
               </div>
             </div>

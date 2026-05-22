@@ -2,7 +2,6 @@
 node_modules/
 dist/
 
-.env.local
 
 # Python and Backend
 .venv/
@@ -12,6 +11,8 @@ __pycache__/
 *.py[cod]
 *$py.class
 sql_app.db
+backend\.env
+frontend\.env
 
 # Project Specific
 PlantVillage/
