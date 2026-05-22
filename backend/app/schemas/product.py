@@ -53,3 +53,12 @@ class ProductPaginationResponse(BaseModel):
     limit: int
     pages: int
     items: List[Product]
+
+class Category(BaseModel):
+    category_id: int
+    name: str
+    parent_category_id: Optional[int] = None
+
+    class Config:
+        from_attributes = True
+

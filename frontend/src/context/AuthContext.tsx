@@ -19,8 +19,8 @@ export interface AuthContextType {
   isAuthenticated: boolean;
   /** Step 1 of login: send OTP to phone */
   sendOtp: (phone: string) => Promise<void>;
-  /** Step 2 of login: verify OTP. Returns isNewUser flag. */
-  verifyOtp: (phone: string, otp: string, role: UserRole) => Promise<{ isNewUser: boolean }>;
+  /** Step 2 of login: verify OTP. Returns isNewUser and actualRole. */
+  verifyOtp: (phone: string, otp: string, role: UserRole) => Promise<{ isNewUser: boolean; actualRole: UserRole }>;
   /** Update profile (name, location, crop_type, etc.) */
   updateProfile: (data: Partial<User>) => Promise<void>;
   logout: () => void;
@@ -46,7 +46,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const res = await fetch(`${API_URL}/user/profile`, {
             headers: { Authorization: `Bearer ${token}` },
           });
-          if (res.ok) setUser(await res.json()); else _clearToken();
+          if (res.ok) {
+            const data = await res.json();
+            if (data && data.role) {
+              const rawRole = data.role.toLowerCase();
+              data.role = rawRole === 'vendor' ? 'seller' : (rawRole as UserRole);
+            }
+            setUser(data);
+          } else {
+            _clearToken();
+          }
         }
       } catch {
         _clearToken();
@@ -86,12 +95,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     phone: string,
     otp: string,
     role: UserRole
-  ): Promise<{ isNewUser: boolean }> => {
+  ): Promise<{ isNewUser: boolean; actualRole: UserRole }> => {
     if (IS_MOCK) {
       const { token: t, isNewUser, user: u } = mockVerifyOtp(phone, otp, role);
       _saveToken(t);
       setUser(u);
-      return { isNewUser };
+      return { isNewUser, actualRole: u.role };
     }
 
     // Real backend — role passed as part of registration metadata
@@ -108,9 +117,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const profileRes = await fetch(`${API_URL}/user/profile`, {
       headers: { Authorization: `Bearer ${data.access_token}` },
     });
-    if (profileRes.ok) setUser(await profileRes.json());
+    
+    let actualRole = role;
+    if (profileRes.ok) {
+      const profileData = await profileRes.json();
+      if (profileData && profileData.role) {
+        const rawRole = profileData.role.toLowerCase();
+        profileData.role = rawRole === 'vendor' ? 'seller' : (rawRole as UserRole);
+        actualRole = profileData.role;
+      }
+      setUser(profileData);
+    }
 
-    return { isNewUser: !data.is_profile_complete };
+    return { isNewUser: data.is_new_user, actualRole };
   };
 
   // ── updateProfile ────────────────────────────────────────────────────────
@@ -132,8 +151,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       body: JSON.stringify(data),
     });
     if (!res.ok) throw new Error('Profile update failed');
-    setUser(await res.json());
+    
+    const updatedUser = await res.json();
+    if (updatedUser && updatedUser.role) {
+      const rawRole = updatedUser.role.toLowerCase();
+      updatedUser.role = rawRole === 'vendor' ? 'seller' : (rawRole as UserRole);
+    }
+    setUser(updatedUser);
   };
+
 
   // ── logout ───────────────────────────────────────────────────────────────
   const logout = () => _clearToken();

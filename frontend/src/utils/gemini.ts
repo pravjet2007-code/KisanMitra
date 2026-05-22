@@ -244,3 +244,44 @@ Respond ONLY as a valid JSON array in this exact format — no extra text:
     return [];
   }
 }
+
+// Specialized eligibility and application analyzer for Government Schemes
+export async function getSchemeEligibilityAnalysis(
+  schemeName: string,
+  schemeDesc: string,
+  userProfile: { name: string; location: string; farmSize: string; cropType: string },
+  language: string
+): Promise<string> {
+  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+  if (!apiKey || apiKey === 'your_gemini_api_key_here' || apiKey.trim() === '') {
+    throw new Error('GEMINI_API_KEY_MISSING');
+  }
+
+  const systemInstruction = `You are a Government Schemes Consultant & Agronomist at KisanMitra. Respond ONLY in ${getLangName(language)}. Be highly structured, informative, and encouraging.`;
+
+  const prompt = `
+    Analyze government scheme eligibility for this farmer:
+    - Farmer Name: ${userProfile.name}
+    - Location: ${userProfile.location}
+    - Farm Size: ${userProfile.farmSize} Acres
+    - Primary Crop: ${userProfile.cropType}
+    
+    Scheme to analyze:
+    - Name: ${schemeName}
+    - Details: ${schemeDesc}
+
+    Generate a comprehensive analysis in ${getLangName(language)}. Include:
+    1. **Eligibility Evaluation**: Explain why this farmer is eligible/partially eligible based on their farm size of ${userProfile.farmSize} acres and crop ${userProfile.cropType} in ${userProfile.location}.
+    2. **Key Subsidies / Benefits**: Summarize what specific benefits they can unlock.
+    3. **Document Checklist**: List required documents e.g., Aadhaar Card, Land Record / Khatauni, Bank Passbook, Passport Photo, Mobile linked to Aadhaar.
+    4. **Step-by-step Application Guide**: Simple, practical steps to apply online or offline via local CSC/Pragathi centers.
+
+    Format the response with bullet points, numbered lists, and bold subheadings so it looks clean and premium when rendered. Keep it to max 6-8 sentences total, making it highly readable.
+  `;
+
+  try {
+    return await callGeminiRaw(apiKey, systemInstruction, [{ role: 'user', parts: [{ text: prompt }] }], 0.3);
+  } catch (err: any) {
+    return `AI recommendation is currently compiling. (Error: ${err.message}). You can still click the verified official link below to review requirements.`;
+  }
+}

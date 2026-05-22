@@ -1,19 +1,90 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import ReviewSection from '../components/ReviewSection';
 import {
   Star, MapPin, CheckCircle2, Users, Leaf, Bug, Microscope,
   Droplets, Shield, CreditCard, Truck,
   ArrowLeft, MessageSquare, Calendar, Package, TrendingUp,
-  ChevronRight, Download, Phone
+  ChevronRight, Download, Phone, Loader2
 } from 'lucide-react';
 
 export default function ListingDetail() {
   const { id } = useParams<{ id: string }>();
+  const [product, setProduct] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
   const [activeTab, setActiveTab] = useState<'details' | 'quality' | 'farmer'>('details');
   const [showOffer, setShowOffer] = useState(false);
   const [offerPrice, setOfferPrice] = useState('2250');
   const [offerSubmitted, setOfferSubmitted] = useState(false);
+
+  useEffect(() => {
+    const fetchProduct = async () => {
+      if (!id) return;
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await fetch(`http://localhost:8000/api/v1/products/${id}`);
+        if (!response.ok) throw new Error('Product not found');
+        const data = await response.json();
+        setProduct(data);
+        // Set dynamic offer price to 95% of listing price as a reasonable starting offer
+        const priceVal = parseFloat(data.price_per_unit) || 0;
+        setOfferPrice(Math.round(priceVal * 0.95).toString());
+      } catch (err: any) {
+        setError(err.message || 'Failed to load product details');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProduct();
+  }, [id]);
+
+  const getImageUrl = (p: any) => {
+    if (p.image_url) {
+      if (p.image_url.startsWith('http')) return p.image_url;
+      return `http://localhost:8000${p.image_url}`;
+    }
+    const name = p.name.toLowerCase();
+    if (name.includes('wheat')) return 'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=1200&q=80';
+    if (name.includes('rice')) return 'https://images.unsplash.com/photo-1536304993881-070a87e2ffab?w=1200&q=80';
+    if (name.includes('mustard')) return 'https://images.unsplash.com/photo-1501004318776-cd2ba4e68be1?w=1200&q=80';
+    return 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=1200&q=80';
+  };
+
+  const formatHarvestDate = (dateStr?: string) => {
+    if (!dateStr) return 'Ready to Ship';
+    try {
+      const d = new Date(dateStr);
+      return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+    } catch {
+      return dateStr;
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-offwhite pt-32 flex justify-center items-center">
+        <Loader2 className="w-10 h-10 animate-spin text-terracotta" />
+      </div>
+    );
+  }
+
+  if (error || !product) {
+    return (
+      <div className="min-h-screen bg-offwhite pt-32 text-center">
+        <p className="text-red-500 mb-4">{error || 'Product not found'}</p>
+        <Link to="/marketplace" className="text-terracotta hover:underline font-semibold">Back to Marketplace</Link>
+      </div>
+    );
+  }
+
+  const price = parseFloat(product.price_per_unit) || 0;
+  const stock = parseFloat(product.stock_quantity) || 0;
+  const totalValue = price * stock;
+  const estTransport = Math.round(totalValue * 0.045) || 1800; // 4.5% of total value or default ₹1800
+  const netTotal = totalValue + estTransport;
 
   return (
     <div className="min-h-screen bg-offwhite pt-24 pb-12">
@@ -24,9 +95,9 @@ export default function ListingDetail() {
             <ArrowLeft className="w-4 h-4" /> Marketplace
           </Link>
           <ChevronRight className="w-4 h-4 text-muted" />
-          <span className="text-muted">Wheat</span>
+          <span className="text-muted capitalize">{product.type?.toLowerCase().replace('_', ' ')}</span>
           <ChevronRight className="w-4 h-4 text-muted" />
-          <span className="text-dark font-medium">Listing Details</span>
+          <span className="text-dark font-medium">{product.name}</span>
         </div>
 
         <div className="grid lg:grid-cols-12 gap-6 lg:gap-8">
@@ -35,9 +106,14 @@ export default function ListingDetail() {
             <div className="bg-white rounded-2xl shadow-xs border border-border overflow-hidden mb-6">
               {/* Image header */}
               <div className="relative h-56 md:h-72 overflow-hidden">
-                <img src="https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=1200&q=80" alt="Wheat Field" className="w-full h-full object-cover" />
+                <img src={getImageUrl(product)} alt={product.name} className="w-full h-full object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
                 <div className="absolute top-4 right-4 flex gap-2">
+                  {product.farming_method?.toLowerCase() === 'organic' && (
+                    <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-sage text-xs text-white rounded-full font-semibold shadow-sm">
+                      <Leaf className="w-3.5 h-3.5" /> Organic
+                    </span>
+                  )}
                   <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-white/20 rounded-full text-xs text-white backdrop-blur-sm">
                     <CheckCircle2 className="w-3.5 h-3.5" /> Verified
                   </span>
@@ -46,18 +122,18 @@ export default function ListingDetail() {
                   </span>
                 </div>
                 <div className="absolute bottom-4 left-6">
-                  <p className="text-sm text-white/70">WHEAT</p>
-                  <h1 className="font-heading text-2xl md:text-3xl font-bold text-white">Wheat HD-2967</h1>
+                  <p className="text-sm text-white/70 tracking-wider capitalize">{product.type?.toLowerCase().replace('_', ' ')}</p>
+                  <h1 className="font-heading text-2xl md:text-3xl font-bold text-white">{product.name}</h1>
                 </div>
               </div>
 
               {/* Quick Info */}
               <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-light">
                 {[
-                  { label: 'Quantity', value: '18 Quintals', icon: Package },
-                  { label: 'Price', value: '₹2,250/q', icon: TrendingUp },
-                  { label: 'Grade', value: 'A', icon: CheckCircle2 },
-                  { label: 'Harvest', value: 'Mar 15', icon: Calendar },
+                  { label: 'Quantity', value: `${stock} ${product.unit_of_measure || 'Units'}`, icon: Package },
+                  { label: 'Price', value: `₹${price.toLocaleString('en-IN')}/${product.unit_of_measure ? (product.unit_of_measure.toLowerCase().startsWith('q') ? 'q' : product.unit_of_measure.toLowerCase()) : 'unit'}`, icon: TrendingUp },
+                  { label: 'Grade', value: product.average_rating >= 4.5 ? 'A+' : product.average_rating >= 4.0 ? 'A' : 'B', icon: CheckCircle2 },
+                  { label: 'Harvest', value: formatHarvestDate(product.harvest_date), icon: Calendar },
                 ].map((item, i) => (
                   <div key={i} className="p-4 text-center">
                     <item.icon className="w-5 h-5 text-terracotta mx-auto mb-1" />
@@ -87,16 +163,16 @@ export default function ListingDetail() {
                   <h3 className="font-heading text-lg font-semibold text-black mb-4">Farm & Crop Details</h3>
                   <div className="grid sm:grid-cols-2 gap-3">
                     {[
-                      { label: 'Plot Size', value: '5 acres' },
-                      { label: 'Sowing Date', value: 'November 10, 2024' },
-                      { label: 'Irrigation', value: 'Tubewell + Canal' },
-                      { label: 'Expected Harvest', value: 'March 15, 2025' },
-                      { label: 'Variety', value: 'HD-2967' },
-                      { label: 'Location', value: 'Punjab, India' },
+                      { label: 'Variety / Product Name', value: product.name },
+                      { label: 'Farming Method', value: product.farming_method || 'Traditional' },
+                      { label: 'Irrigation Source', value: 'Tubewell + Canal' },
+                      { label: 'Expected/Harvest Date', value: product.harvest_date ? new Date(product.harvest_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Ready for dispatch' },
+                      { label: 'Shelf Life', value: product.shelf_life_days ? `${product.shelf_life_days} Days` : 'N/A' },
+                      { label: 'Description', value: product.description || 'Verified high quality yield harvested under expert supervision.' },
                     ].map((item, i) => (
                       <div key={i} className="bg-offwhite rounded-xl p-4 border border-light">
                         <p className="text-xs text-muted mb-1">{item.label}</p>
-                        <p className="text-sm font-semibold text-black">{item.value}</p>
+                        <p className="text-sm font-semibold text-black break-words">{item.value}</p>
                       </div>
                     ))}
                   </div>
@@ -183,24 +259,24 @@ export default function ListingDetail() {
                       <Users className="w-8 h-8 text-sage" />
                     </div>
                     <div>
-                      <h3 className="font-heading text-xl font-semibold text-black">Verified Farmer</h3>
+                      <h3 className="font-heading text-xl font-semibold text-black">Verified Farmer #{product.seller_id}</h3>
                       <p className="text-muted text-sm flex items-center gap-1">
                         <MapPin className="w-3.5 h-3.5" /> Punjab, India
                       </p>
                       <div className="flex items-center gap-3 mt-2">
                         <span className="flex items-center gap-1 text-sm">
                           <Star className="w-4 h-4 text-amber fill-amber" />
-                          <span className="font-semibold text-black">4.7</span>
+                          <span className="font-semibold text-black">{product.average_rating ? product.average_rating.toFixed(1) : '4.5'}</span>
                         </span>
-                        <span className="text-muted text-sm">12 completed sales</span>
+                        <span className="text-muted text-sm">({product.review_count || 0} reviews)</span>
                       </div>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
                     {[
-                      { label: 'On-Time Delivery', value: '95%' },
-                      { label: 'Quality Match', value: '92%' },
-                      { label: 'Disputes', value: '0' },
+                      { label: 'On-Time Delivery', value: '96%' },
+                      { label: 'Quality Match', value: '94%' },
+                      { label: 'Farmer ID', value: `#${product.seller_id}` },
                       { label: 'Response Time', value: '< 2 hrs' },
                     ].map((stat, i) => (
                       <div key={i} className="bg-offwhite rounded-xl p-4 text-center border border-light">
@@ -212,8 +288,8 @@ export default function ListingDetail() {
                   <div className="bg-sage/5 border border-sage/20 rounded-xl p-4 flex items-center gap-3">
                     <Shield className="w-6 h-6 text-sage shrink-0" />
                     <div>
-                      <p className="text-sm font-semibold text-black">Verified Farmer</p>
-                      <p className="text-xs text-dark">KYC verified · Active since 2024 · Top 15% seller</p>
+                      <p className="text-sm font-semibold text-black">Verified Seller Partner</p>
+                      <p className="text-xs text-dark">KYC verified · Active member of KisanMitra cooperative platform</p>
                     </div>
                   </div>
                 </div>
@@ -232,19 +308,19 @@ export default function ListingDetail() {
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <p className="text-sm text-muted">Total Value</p>
-                    <p className="font-heading text-3xl font-bold text-black">₹40,500</p>
-                    <p className="text-xs text-dark">18 Q × ₹2,250/q</p>
+                    <p className="font-heading text-3xl font-bold text-black">₹{totalValue.toLocaleString('en-IN')}</p>
+                    <p className="text-xs text-dark">{stock} {product.unit_of_measure || 'Units'} × ₹{price.toLocaleString('en-IN')}</p>
                   </div>
                   <div className="flex items-center gap-1 px-3 py-1.5 bg-amber/10 text-amber text-sm font-semibold rounded-full">
-                    <Star className="w-4 h-4 fill-amber" /> 4.7
+                    <Star className="w-4 h-4 fill-amber" /> {product.average_rating ? product.average_rating.toFixed(1) : '4.5'}
                   </div>
                 </div>
 
                 <div className="space-y-2.5 mb-6">
                   {[
-                    { label: 'Price per quintal', value: '₹2,250' },
-                    { label: 'Quantity', value: '18 Quintals' },
-                    { label: 'Est. Transport (52 km)', value: '₹1,800' },
+                    { label: 'Price per unit', value: `₹${price.toLocaleString('en-IN')} / ${product.unit_of_measure || 'unit'}` },
+                    { label: 'Quantity Available', value: `${stock} ${product.unit_of_measure || 'Units'}` },
+                    { label: 'Est. Logistics & Transport', value: `₹${estTransport.toLocaleString('en-IN')}` },
                   ].map((row, i) => (
                     <div key={i} className="flex justify-between text-sm">
                       <span className="text-muted">{row.label}</span>
@@ -253,7 +329,7 @@ export default function ListingDetail() {
                   ))}
                   <div className="border-t border-border pt-3 flex justify-between">
                     <span className="font-semibold text-black text-sm">Net Total</span>
-                    <span className="font-heading text-xl font-bold text-sage">₹42,300</span>
+                    <span className="font-heading text-xl font-bold text-sage">₹{netTotal.toLocaleString('en-IN')}</span>
                   </div>
                 </div>
 
@@ -261,20 +337,20 @@ export default function ListingDetail() {
                   <div className="bg-sage/10 border border-sage/20 rounded-xl p-6 text-center">
                     <CheckCircle2 className="w-10 h-10 text-sage mx-auto mb-3" />
                     <p className="font-heading text-lg font-semibold text-black">Offer Submitted!</p>
-                    <p className="text-sm text-dark mt-1">The farmer will respond within 24 hours.</p>
+                    <p className="text-sm text-dark mt-1">Sent offer of ₹{parseFloat(offerPrice).toLocaleString('en-IN')} / {product.unit_of_measure || 'unit'}. The farmer will respond within 24 hours.</p>
                   </div>
                 ) : (
                   <>
-                    <button onClick={() => setOfferSubmitted(true)} className="w-full py-4 bg-terracotta text-white font-heading font-semibold rounded-xl hover:bg-terracotta-dark transition-all shadow-md text-base mb-3">
-                      Buy Now — ₹40,500
+                    <button onClick={() => setOfferSubmitted(true)} className="w-full py-4 bg-terracotta text-white font-heading font-semibold rounded-xl hover:bg-terracotta-dark transition-all shadow-md text-base mb-3 text-center">
+                      Buy Now — ₹{totalValue.toLocaleString('en-IN')}
                     </button>
                     {!showOffer ? (
-                      <button onClick={() => setShowOffer(true)} className="w-full py-4 border-2 border-terracotta text-terracotta font-heading font-semibold rounded-xl hover:bg-terracotta/5 transition-all text-base">
+                      <button onClick={() => setShowOffer(true)} className="w-full py-4 border-2 border-terracotta text-terracotta font-heading font-semibold rounded-xl hover:bg-terracotta/5 transition-all text-base text-center">
                         Make an Offer
                       </button>
                     ) : (
                       <div className="border-2 border-terracotta/30 rounded-xl p-4 animate-fade-in">
-                        <p className="text-sm font-semibold text-black mb-2">Your Offer (₹/quintal)</p>
+                        <p className="text-sm font-semibold text-black mb-2">Your Offer (₹/{product.unit_of_measure || 'unit'})</p>
                         <div className="flex gap-2">
                           <div className="flex-1 relative">
                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-dark font-semibold">₹</span>

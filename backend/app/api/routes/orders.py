@@ -24,6 +24,16 @@ def read_order(order_id: int, db: Session = Depends(get_db)):
 def read_orders_by_buyer(buyer_id: int, db: Session = Depends(get_db)):
     return crud_order.get_orders_by_buyer(db, buyer_id=buyer_id)
 
+@router.get("/seller/{seller_id}", response_model=List[order.Order])
+def read_orders_by_seller(
+    seller_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(deps.RoleChecker([models.UserRole.FARMER, models.UserRole.VENDOR]))
+):
+    if current_user.user_id != seller_id:
+        raise HTTPException(status_code=403, detail="Not authorized to fetch these orders")
+    return db.query(models.Order).join(models.OrderItem).filter(models.OrderItem.seller_id == seller_id).all()
+
 @router.patch("/{order_id}/status", response_model=order.Order)
 def update_order_status(order_id: int, status: order.OrderStatus, db: Session = Depends(get_db)):
     db_order = crud_order.update_order_status(db, order_id=order_id, status=status)

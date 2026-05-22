@@ -40,6 +40,7 @@ def get_products(
     min_price: Optional[float] = None,
     max_price: Optional[float] = None,
     min_rating: Optional[int] = None,
+    farming_method: Optional[str] = None,
     sort_by: Optional[str] = "newest"
 ):
     query = db.query(models.Product).filter(models.Product.is_active == True)
@@ -53,16 +54,37 @@ def get_products(
         query = query.filter(models.Product.price_per_unit >= min_price)
     if max_price is not None:
         query = query.filter(models.Product.price_per_unit <= max_price)
+    if farming_method:
+        query = query.filter(models.Product.farming_method.ilike(f"%{farming_method}%"))
+    if min_rating is not None and min_rating > 0:
+        # Group reviews by product_id and filter where avg(rating) >= min_rating
+        rating_subquery = db.query(
+            models.Review.product_id
+        ).group_by(
+            models.Review.product_id
+        ).having(
+            func.avg(models.Review.rating) >= min_rating
+        ).subquery()
+        query = query.filter(models.Product.product_id.in_(rating_subquery))
         
     # Get total count before pagination
     total_count = query.count()
 
     # Join for ratings if needed for filtering/display
-    # We'll calculate ratings for the current page items
     if sort_by == "price_asc":
         query = query.order_by(models.Product.price_per_unit.asc())
     elif sort_by == "price_desc":
         query = query.order_by(models.Product.price_per_unit.desc())
+    elif sort_by == "score":
+        # Group reviews by product_id to get average rating
+        rating_sort_sub = db.query(
+            models.Review.product_id,
+            func.avg(models.Review.rating).label("avg_rating")
+        ).group_by(models.Review.product_id).subquery()
+        
+        # Outer join and order by avg_rating desc, defaulting no reviews to 0.0
+        query = query.outerjoin(rating_sort_sub, models.Product.product_id == rating_sort_sub.c.product_id) \
+                     .order_by(func.coalesce(rating_sort_sub.c.avg_rating, 0.0).desc())
     else:
         query = query.order_by(models.Product.created_at.desc())
 
@@ -78,6 +100,7 @@ def get_products(
         item.review_count = stats.count if stats.count else 0
 
     return items, total_count
+
 
 def create_product(db: Session, product_in: product.ProductCreate):
     db_product = models.Product(**product_in.model_dump(exclude={"average_rating", "review_count"}))

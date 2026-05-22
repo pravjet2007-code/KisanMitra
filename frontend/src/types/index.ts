@@ -132,6 +132,7 @@ export interface CreateReviewPayload {
   reviewer_id: number;
   rating: number;
   comment?: string;
+  reviewer_name?: string;
 }
 
 export interface FarmerAnalytics {

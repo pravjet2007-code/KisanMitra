@@ -8,42 +8,6 @@ import type { Review } from "../types";
 
 // ── Star helpers ──────────────────────────────────────────────────────────────
 
-function StarRating({
-  value,
-  onChange,
-}: {
-  value: number;
-  onChange?: (v: number) => void;
-}) {
-  const [hovered, setHovered] = useState(0);
-  return (
-    <div style={{ display: "flex", gap: 2 }}>
-      {[1, 2, 3, 4, 5].map((star) => (
-        <button
-          key={star}
-          type="button"
-          onClick={() => onChange?.(star)}
-          onMouseEnter={() => onChange && setHovered(star)}
-          onMouseLeave={() => onChange && setHovered(0)}
-          style={{
-            background: "none",
-            border: "none",
-            cursor: onChange ? "pointer" : "default",
-            fontSize: 22,
-            color:
-              star <= (hovered || value) ? "#f59e0b" : "#d1d5db",
-            padding: "0 1px",
-            lineHeight: 1,
-          }}
-          aria-label={`${star} star`}
-        >
-          ★
-        </button>
-      ))}
-    </div>
-  );
-}
-
 function averageRating(reviews: Review[]) {
   if (!reviews.length) return 0;
   return reviews.reduce((s, r) => s + r.rating, 0) / reviews.length;
@@ -102,6 +66,7 @@ export default function ReviewSection({ productId }: Props) {
           rating,
           comment,
           reviewer_id: user.user_id,
+          reviewer_name: user.full_name,
         },
         token ?? undefined
       );
@@ -203,9 +168,12 @@ export default function ReviewSection({ productId }: Props) {
           <div key={r.review_id} className="border border-light rounded-2xl p-4 bg-white shadow-xs hover:shadow-sm transition-shadow">
             <div className="flex items-center gap-3 mb-2">
               <div className="w-9 h-9 rounded-full bg-sage/10 text-sage-dark flex items-center justify-center font-bold text-xs shrink-0 uppercase">
-                {String(r.reviewer_id).slice(-2)}
+                {r.reviewer?.full_name ? r.reviewer.full_name.charAt(0) : String(r.reviewer_id).slice(-2)}
               </div>
               <div className="flex-1">
+                <p className="text-sm font-semibold m-0 text-dark">
+                  {r.reviewer?.full_name || `Farmer ${r.reviewer_id}`}
+                </p>
                 <div className="flex gap-0.5">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <span key={star} className={`text-sm ${star <= r.rating ? 'text-amber-500' : 'text-gray-200'}`}>★</span>
@@ -221,155 +189,3 @@ export default function ReviewSection({ productId }: Props) {
     </section>
   );
 }
-
-// ── Styles (inline so it works without extra CSS) ─────────────────────────────
-
-const styles: Record<string, React.CSSProperties> = {
-  section: {
-    marginTop: 40,
-    padding: "24px 0",
-    borderTop: "1px solid #e5e7eb",
-  },
-  header: {
-    display: "flex",
-    alignItems: "center",
-    gap: 16,
-    marginBottom: 20,
-    flexWrap: "wrap",
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 700,
-    margin: 0,
-    color: "#111827",
-  },
-  summary: {
-    display: "flex",
-    alignItems: "center",
-    gap: 6,
-  },
-  avgNum: {
-    fontSize: 22,
-    fontWeight: 800,
-    color: "#f59e0b",
-  },
-  count: {
-    fontSize: 14,
-    color: "#6b7280",
-  },
-  form: {
-    background: "#f9fafb",
-    border: "1px solid #e5e7eb",
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 28,
-    display: "flex",
-    flexDirection: "column",
-    gap: 12,
-  },
-  formTitle: {
-    fontWeight: 700,
-    fontSize: 16,
-    margin: 0,
-    color: "#374151",
-  },
-  formRow: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 4,
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: 600,
-    color: "#6b7280",
-    textTransform: "uppercase",
-    letterSpacing: "0.05em",
-  },
-  textarea: {
-    border: "1px solid #d1d5db",
-    borderRadius: 8,
-    padding: "10px 12px",
-    fontSize: 14,
-    fontFamily: "inherit",
-    resize: "vertical",
-    outline: "none",
-    background: "#fff",
-  },
-  btn: {
-    alignSelf: "flex-start",
-    background: "#16a34a",
-    color: "#fff",
-    border: "none",
-    borderRadius: 8,
-    padding: "10px 20px",
-    fontSize: 14,
-    fontWeight: 600,
-    cursor: "pointer",
-  },
-  successBanner: {
-    background: "#dcfce7",
-    color: "#166534",
-    padding: "12px 16px",
-    borderRadius: 8,
-    marginBottom: 20,
-    fontSize: 14,
-    fontWeight: 500,
-  },
-  loginPrompt: {
-    fontSize: 14,
-    color: "#6b7280",
-    marginBottom: 20,
-  },
-  link: {
-    color: "#16a34a",
-    fontWeight: 600,
-    textDecoration: "none",
-  },
-  list: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 14,
-  },
-  card: {
-    border: "1px solid #f3f4f6",
-    borderRadius: 10,
-    padding: 16,
-    background: "#fff",
-    boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
-  },
-  cardTop: {
-    display: "flex",
-    alignItems: "center",
-    gap: 12,
-    marginBottom: 8,
-  },
-  avatar: {
-    width: 36,
-    height: 36,
-    borderRadius: "50%",
-    background: "#d1fae5",
-    color: "#065f46",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontWeight: 700,
-    fontSize: 13,
-    flexShrink: 0,
-  },
-  commentText: {
-    margin: 0,
-    fontSize: 14,
-    color: "#374151",
-    lineHeight: 1.6,
-  },
-  muted: {
-    fontSize: 13,
-    color: "#9ca3af",
-    margin: "4px 0 0",
-  },
-  errorText: {
-    color: "#dc2626",
-    fontSize: 13,
-    margin: 0,
-  },
-};
