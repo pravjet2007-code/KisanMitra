@@ -23,6 +23,8 @@ export interface AuthContextType {
   verifyOtp: (phone: string, otp: string, role: UserRole) => Promise<{ isNewUser: boolean; actualRole: UserRole }>;
   /** Update profile (name, location, crop_type, etc.) */
   updateProfile: (data: Partial<User>) => Promise<void>;
+  /** Re-fetch the full profile from the API and sync context state */
+  refreshProfile: () => Promise<void>;
   logout: () => void;
 }
 
@@ -53,12 +55,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               data.role = rawRole === 'vendor' ? 'seller' : (rawRole as UserRole);
             }
             setUser(data);
-          } else {
+          } else if (res.status === 401) {
+            // Token is truly expired/invalid — clear it
             _clearToken();
+          } else {
+            // Transient server error (404, 500, etc.) — keep token, build minimal user
+            // so the user stays logged in. Profile will be re-fetched on next nav.
+            const cached = localStorage.getItem('km_user');
+            if (cached) {
+              try { setUser(JSON.parse(cached)); } catch { _clearToken(); }
+            } else {
+              // No cached user — can't stay logged in, clear token
+              _clearToken();
+            }
           }
         }
       } catch {
-        _clearToken();
+        // Network error — keep token, use cached user if available
+        const cached = localStorage.getItem('km_user');
+        if (cached) {
+          try { setUser(JSON.parse(cached)); } catch { _clearToken(); }
+        } else {
+          _clearToken();
+        }
       } finally {
         setLoading(false);
       }
@@ -71,10 +90,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem('km_token', t);
   };
 
+  const _saveUser = (u: User) => {
+    setUser(u);
+    localStorage.setItem('km_user', JSON.stringify(u));
+  };
+
   const _clearToken = () => {
     setToken(null);
     setUser(null);
     localStorage.removeItem('km_token');
+    localStorage.removeItem('km_user');
   };
 
   // ── sendOtp ──────────────────────────────────────────────────────────────
@@ -99,7 +124,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (IS_MOCK) {
       const { token: t, isNewUser, user: u } = mockVerifyOtp(phone, otp, role);
       _saveToken(t);
-      setUser(u);
+      _saveUser(u);
       return { isNewUser, actualRole: u.role };
     }
 
@@ -114,22 +139,49 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const data = await res.json();
     _saveToken(data.access_token);
 
-    const profileRes = await fetch(`${API_URL}/user/profile`, {
-      headers: { Authorization: `Bearer ${data.access_token}` },
-    });
-    
-    let actualRole = role;
-    if (profileRes.ok) {
-      const profileData = await profileRes.json();
-      if (profileData && profileData.role) {
-        const rawRole = profileData.role.toLowerCase();
-        profileData.role = rawRole === 'vendor' ? 'seller' : (rawRole as UserRole);
-        actualRole = profileData.role;
-      }
-      setUser(profileData);
+    // Determine actual role from OTP response (backend may return user_role)
+    let actualRole: UserRole = role;
+    if (data.role) {
+      const raw = (data.role as string).toLowerCase();
+      actualRole = (raw === 'vendor' ? 'seller' : raw) as UserRole;
+    } else if (data.user_role) {
+      const raw = (data.user_role as string).toLowerCase();
+      actualRole = (raw === 'vendor' ? 'seller' : raw) as UserRole;
     }
 
-    return { isNewUser: data.is_new_user, actualRole };
+    // Build a minimal user so isAuthenticated = true immediately
+    // This prevents ProtectedRoute from bouncing back to /auth while
+    // the profile fetch is still in-flight or if it fails transiently.
+    const minimalUser: User = {
+      user_id: typeof data.user_id === 'number' ? data.user_id : 0,
+      full_name: data.full_name ?? '',
+      phone_number: phone,
+      role: actualRole,
+      is_verified: true,
+      created_at: new Date().toISOString(),
+    };
+    _saveUser(minimalUser);
+
+    // Try to enrich with full profile — non-blocking, best-effort
+    try {
+      const profileRes = await fetch(`${API_URL}/user/profile`, {
+        headers: { Authorization: `Bearer ${data.access_token}` },
+      });
+      if (profileRes.ok) {
+        const profileData = await profileRes.json();
+        if (profileData && profileData.role) {
+          const rawRole = (profileData.role as string).toLowerCase();
+          profileData.role = (rawRole === 'vendor' ? 'seller' : rawRole) as UserRole;
+          actualRole = profileData.role;
+        }
+        _saveUser(profileData);
+      }
+      // If profile fetch fails (404, 500, network), keep the minimal user — still logged in
+    } catch {
+      // Silently ignore — minimal user already set above
+    }
+
+    return { isNewUser: data.is_new_user ?? false, actualRole };
   };
 
   // ── updateProfile ────────────────────────────────────────────────────────
@@ -138,7 +190,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     if (IS_MOCK) {
       const updated = mockUpdateProfile(token, data);
-      setUser(updated);
+      _saveUser(updated);
       return;
     }
 
@@ -154,14 +206,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     const updatedUser = await res.json();
     if (updatedUser && updatedUser.role) {
-      const rawRole = updatedUser.role.toLowerCase();
-      updatedUser.role = rawRole === 'vendor' ? 'seller' : (rawRole as UserRole);
+      const rawRole = (updatedUser.role as string).toLowerCase();
+      updatedUser.role = (rawRole === 'vendor' ? 'seller' : rawRole) as UserRole;
     }
-    setUser(updatedUser);
+    _saveUser(updatedUser);
   };
 
 
-  // ── logout ───────────────────────────────────────────────────────────────
+  // ── refreshProfile ───────────────────────────────────────────────────────
+  const refreshProfile = async (): Promise<void> => {
+    const currentToken = localStorage.getItem('km_token');
+    if (!currentToken) return;
+    try {
+      const res = await fetch(`${API_URL}/user/profile`, {
+        headers: { Authorization: `Bearer ${currentToken}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.role) {
+          const rawRole = (data.role as string).toLowerCase();
+          data.role = (rawRole === 'vendor' ? 'seller' : rawRole) as UserRole;
+        }
+        _saveUser(data);
+      }
+    } catch {
+      // Silently ignore — caller handles stale data gracefully
+    }
+  };
+
+  // ── logout ────────────────────────────────────────────────────────────────
   const logout = () => _clearToken();
 
   return (
@@ -175,6 +248,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         sendOtp,
         verifyOtp,
         updateProfile,
+        refreshProfile,
         logout,
       }}
     >

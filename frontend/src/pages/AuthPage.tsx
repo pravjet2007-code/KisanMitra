@@ -66,6 +66,8 @@ export default function AuthPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
+  const [quickLoginLoading, setQuickLoginLoading] = useState<string | null>(null);
+
   // Onboard fields
   const [fullName, setFullName] = useState('');
   const [state, setState] = useState('');
@@ -100,6 +102,26 @@ export default function AuthPage() {
   const handleRoleSelect = (role: UserRole) => {
     setSelectedRole(role);
     setStep('phone');
+  };
+
+  // One-click login using seeded test profiles (OTP is always 123456 in live dev DB)
+  const handleQuickLogin = async (prof: typeof SEEDED_PROFILES[number]) => {
+    setQuickLoginLoading(prof.phone);
+    setError('');
+    try {
+      setPhone(prof.phone);
+      setSelectedRole(prof.role);
+      await sendOtp(prof.phone);
+      const { isNewUser, actualRole } = await verifyOtp(prof.phone, '123456', prof.role);
+      if (isNewUser) {
+        setStep('onboard');
+      } else {
+        navigateToDashboard(actualRole);
+      }
+    } catch (e: any) {
+      setError(e.message || 'Quick login failed — check backend is running');
+      setQuickLoginLoading(null);
+    }
   };
 
   const handleSendOtp = async () => {
@@ -278,6 +300,47 @@ export default function AuthPage() {
                 and{' '}
                 <a href="#" className="text-terracotta hover:underline">Privacy Policy</a>
               </p>
+
+              {/* Quick Login — one-click from role screen */}
+              <div className="mt-6 bg-white/70 backdrop-blur-md rounded-2xl p-5 border border-border/80 shadow-xs">
+                <h3 className="text-xs font-bold text-muted uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                  <Shield className="w-3.5 h-3.5 text-terracotta" />
+                  Quick Login — Test Profiles
+                </h3>
+                {error && (
+                  <p className="text-xs text-danger mb-3 flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-danger inline-block" /> {error}
+                  </p>
+                )}
+                <div className="grid grid-cols-1 gap-2">
+                  {SEEDED_PROFILES.map((prof) => {
+                    const RoleIcon = prof.role === 'farmer' ? Wheat : prof.role === 'seller' ? Store : ShoppingCart;
+                    const roleColor = prof.role === 'farmer' ? 'text-sage-dark bg-sage/10' : prof.role === 'seller' ? 'text-amber bg-amber/10' : 'text-info bg-info/10';
+                    const isThisLoading = quickLoginLoading === prof.phone;
+                    return (
+                      <button
+                        key={prof.phone}
+                        onClick={() => handleQuickLogin(prof)}
+                        disabled={!!quickLoginLoading}
+                        className="flex items-center gap-3 p-3 rounded-xl border border-border bg-white hover:border-terracotta/40 hover:bg-terracotta/5 transition-all text-left group disabled:opacity-60"
+                      >
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${roleColor}`}>
+                          <RoleIcon className="w-4 h-4" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-heading font-bold text-xs text-black truncate group-hover:text-terracotta transition-colors">{prof.name}</p>
+                          <p className="text-[10px] text-muted truncate mt-0.5">{prof.desc} • {prof.role}</p>
+                        </div>
+                        {isThisLoading ? (
+                          <div className="w-4 h-4 border-2 border-terracotta/30 border-t-terracotta rounded-full animate-spin shrink-0" />
+                        ) : (
+                          <span className="text-[10px] font-bold text-terracotta opacity-0 group-hover:opacity-100 transition-opacity shrink-0">Login →</span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           )}
 
@@ -330,28 +393,42 @@ export default function AuthPage() {
                   <Shield className="w-3.5 h-3.5 text-terracotta" />
                   Quick Test Profiles (Seeded Database Users)
                 </h3>
+                {error && (
+                  <p className="text-xs text-danger mb-3 flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-danger inline-block" /> {error}
+                  </p>
+                )}
                 <div className="grid grid-cols-1 gap-2">
                   {SEEDED_PROFILES.map((prof) => {
                     const RoleIcon = prof.role === 'farmer' ? Wheat : prof.role === 'seller' ? Store : ShoppingCart;
                     const roleColor = prof.role === 'farmer' ? 'text-sage-dark bg-sage/10' : prof.role === 'seller' ? 'text-amber bg-amber/10' : 'text-info bg-info/10';
+                    const isThisLoading = quickLoginLoading === prof.phone;
                     return (
-                      <button
-                        key={prof.phone}
-                        onClick={() => {
-                          setPhone(prof.phone);
-                          setSelectedRole(prof.role);
-                          setError('');
-                        }}
-                        className="flex items-center gap-3 p-3 rounded-xl border border-border bg-white hover:border-terracotta/40 hover:bg-terracotta/5 transition-all text-left group"
-                      >
-                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${roleColor}`}>
-                          <RoleIcon className="w-4 h-4" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-heading font-bold text-xs text-black truncate group-hover:text-terracotta transition-colors">{prof.name}</p>
-                          <p className="text-[10px] text-muted truncate mt-0.5">{prof.desc} • {prof.phone}</p>
-                        </div>
-                      </button>
+                      <div key={prof.phone} className="flex items-center gap-2">
+                        <button
+                          onClick={() => { setPhone(prof.phone); setSelectedRole(prof.role); setError(''); }}
+                          className="flex items-center gap-3 p-3 rounded-xl border border-border bg-white hover:border-terracotta/40 hover:bg-terracotta/5 transition-all text-left group flex-1 min-w-0"
+                        >
+                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${roleColor}`}>
+                            <RoleIcon className="w-4 h-4" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-heading font-bold text-xs text-black truncate group-hover:text-terracotta transition-colors">{prof.name}</p>
+                            <p className="text-[10px] text-muted truncate mt-0.5">{prof.desc} • {prof.phone}</p>
+                          </div>
+                        </button>
+                        <button
+                          onClick={() => handleQuickLogin(prof)}
+                          disabled={!!quickLoginLoading}
+                          className="shrink-0 px-3 py-3 rounded-xl bg-terracotta text-white text-[10px] font-bold hover:bg-terracotta-dark transition-all disabled:opacity-50 flex items-center gap-1"
+                        >
+                          {isThisLoading ? (
+                            <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          ) : (
+                            <>⚡ Login</>
+                          )}
+                        </button>
+                      </div>
                     );
                   })}
                 </div>

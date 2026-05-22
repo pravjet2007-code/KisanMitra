@@ -18,7 +18,7 @@ type Tab = 'overview' | 'soil' | 'pest' | 'disease' | 'schemes' | 'market' | 'tr
 
 export default function FarmerDashboard() {
   const { t, i18n } = useTranslation();
-  const { user, updateProfile } = useAuth();
+  const { user, updateProfile, refreshProfile } = useAuth();
   const [activeTab, setActiveTab] = useState<Tab>('overview');
   const [showVoice, setShowVoice] = useState(false);
 
@@ -28,6 +28,20 @@ export default function FarmerDashboard() {
   const [farmSize, setFarmSize] = useState(user?.farm_size || '');
   const [cropType, setCropType] = useState(user?.crop_type || '');
   const profileSetup = !!(user?.full_name);
+
+  // Re-sync local profile fields whenever user context updates (e.g. after async profile fetch)
+  useEffect(() => {
+    if (user?.full_name) setFarmerName(user.full_name);
+    if (user?.location)  setFarmLocation(user.location);
+    if (user?.farm_size) setFarmSize(user.farm_size);
+    if (user?.crop_type) setCropType(user.crop_type);
+  }, [user]);
+
+  // On mount: always fetch the latest profile from the DB
+  useEffect(() => {
+    refreshProfile();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // ML States
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
