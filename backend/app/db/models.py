@@ -1,4 +1,5 @@
 import enum
+import uuid
 from sqlalchemy import Column, Integer, String, Float, ForeignKey, Enum, DateTime, Boolean, Text, Date, Numeric, CheckConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -38,7 +39,7 @@ class User(Base):
     email = Column(String(255), unique=True, index=True)
     password_hash = Column(String(255), nullable=False)
     role = Column(Enum(UserRole), nullable=False)
-    user_uuid = Column(String(36), unique=True, index=True, server_default=func.gen_random_uuid()) # Added UUID
+    user_uuid = Column(String(36), unique=True, index=True, default=lambda: str(uuid.uuid4()), server_default=func.gen_random_uuid()) # Added UUID
     is_verified = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     farm_size = Column(String(50), nullable=True)
@@ -90,7 +91,7 @@ class Product(Base):
     shelf_life_days = Column(Integer)
     farming_method = Column(String(100))
     image_url = Column(Text)
-    product_uuid = Column(String(36), unique=True, index=True, server_default=func.gen_random_uuid()) # Added UUID
+    product_uuid = Column(String(36), unique=True, index=True, default=lambda: str(uuid.uuid4()), server_default=func.gen_random_uuid()) # Added UUID
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     is_active = Column(Boolean, default=True)
 
@@ -114,7 +115,7 @@ class Order(Base):
     order_id = Column(Integer, primary_key=True, index=True)
     buyer_id = Column(Integer, ForeignKey("users.user_id", ondelete="RESTRICT"), nullable=False)
     total_amount = Column(Numeric(10, 2), nullable=False)
-    order_uuid = Column(String(36), unique=True, index=True, server_default=func.gen_random_uuid()) # Added UUID
+    order_uuid = Column(String(36), unique=True, index=True, default=lambda: str(uuid.uuid4()), server_default=func.gen_random_uuid()) # Added UUID
     shipping_address_id = Column(Integer, ForeignKey("addresses.address_id", ondelete="SET NULL"))
     current_status = Column(Enum(OrderStatus), default=OrderStatus.PENDING)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

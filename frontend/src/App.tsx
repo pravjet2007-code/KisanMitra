@@ -18,6 +18,7 @@ import CartPage from './pages/CartPage';
 import OrdersPage from './pages/OrdersPage';
 import OrderTrackingPage from './pages/OrderTrackingPage';
 import PaymentPage from './pages/PaymentPage';
+import SellerDashboard from './pages/SellerDashboard';
 import type { UserRole } from './types';
 
 function ScrollToTop() {
@@ -156,8 +157,7 @@ function App() {
             <Route path="/dashboard/seller" element={
               <ProtectedRoute role="seller">
                 <DashboardLayout>
-                  {/* SellerDashboard — same as BuyerDashboard for now with seller context */}
-                  <BuyerDashboard />
+                  <SellerDashboard />
                 </DashboardLayout>
               </ProtectedRoute>
             } />

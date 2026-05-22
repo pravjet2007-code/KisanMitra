@@ -428,5 +428,62 @@
       "none": "No Traceability Records",
       "desc": "Once you complete a purchase, a full lot passport will be generated with soil, pest, and quality data."
     }
+  },
+  "sd": {
+    "title": "Seller Dashboard",
+    "tabs": {
+      "overview": "Overview",
+      "inventory": "Manage Inventory",
+      "orders": "Orders",
+      "analytics": "Sales Analytics",
+      "profile": "Business Profile"
+    },
+    "setup": {
+      "title": "Seller Onboarding",
+      "subtitle": "Complete verification to unlock sales, inventory, and order fulfillment tools.",
+      "name": "Business / Shop Name *",
+      "type": "Seller Type",
+      "selectType": "Select seller type",
+      "location": "Location (City, State) *",
+      "license": "Seed / Fertilizer / FSSAI License Number",
+      "documents": "Registration Documents (GST/License PDF)",
+      "uploadDst": "Click to upload verification certificates",
+      "submit": "Save Profile"
+    },
+    "overview": {
+      "welcomeTitle": "Namaste, {{name}}! 🙏",
+      "welcomeSubtitle": "Complete your seller onboarding to start listing seeds, fertilizers, or other agricultural equipment.",
+      "setupBtn": "Complete Shop Profile",
+      "recentOrders": "Recent Incoming Orders",
+      "lowStock": "Low Stock Alerts",
+      "noAlerts": "All products are well stocked. No low-stock warnings.",
+      "noOrders": "No orders received yet. Make sure your inventory is active!"
+    },
+    "stats": {
+      "revenue": "Total Revenue",
+      "listings": "Active Listings",
+      "pending": "Pending Orders",
+      "rating": "Seller Rating"
+    },
+    "inventory": {
+      "title": "Inventory Management",
+      "addInput": "List New Item",
+      "none": "No products listed yet",
+      "desc": "Start listing inputs like seeds, fertilizers, tools, or bulk grains to reach local farmers.",
+      "search": "Search inventory...",
+      "addFirst": "Add Your First Product"
+    },
+    "orders": {
+      "title": "Order Fulfillment",
+      "none": "No incoming orders",
+      "desc": "Orders from local farmers or purchasing agents will appear here instantly for fulfillment."
+    },
+    "analytics": {
+      "title": "Sales Performance",
+      "feedback": "Recent Customer Reviews",
+      "ratingTitle": "Rating Distribution",
+      "topSeller": "Top Selling Products",
+      "desc": "Sales charts and transaction logs will populate as your business fulfills orders."
+    }
   }
 }
