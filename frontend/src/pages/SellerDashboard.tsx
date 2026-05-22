@@ -908,6 +908,8 @@ export default function SellerDashboard() {
                     className="w-full px-4 py-3 bg-offwhite border border-border rounded-xl text-sm focus:border-amber focus:ring-2 focus:ring-amber/15 outline-none appearance-none"
                   >
                     <option value="">Select Category</option>
+                    <option value="farming-tools">Farming Tools</option>
+                    <option value="fertilisers-pesticides">Fertilisers and Pesticides</option>
                     {dbCategories.map((c) => (
                       <option key={c.category_id} value={c.category_id}>
                         {c.name}

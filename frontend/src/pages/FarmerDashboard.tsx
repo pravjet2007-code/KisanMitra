@@ -476,12 +476,12 @@ export default function FarmerDashboard() {
             <button className="relative p-3 bg-white rounded-xl shadow-sm hover:shadow-md transition-all border border-border">
               <Bell className="w-5 h-5 text-dark" />
             </button>
-            <Link
-              to="/marketplace"
+            <button
+              onClick={() => { resetForm(); setActiveTab('market'); setShowProductModal(true); }}
               className="hidden md:inline-flex items-center gap-2 px-5 py-3 bg-terracotta text-white rounded-xl font-semibold hover:bg-terracotta-dark transition-colors shadow-md"
             >
               <Plus className="w-4 h-4" /> New Listing
-            </Link>
+            </button>
           </div>
         </div>
 
