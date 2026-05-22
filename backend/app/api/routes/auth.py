@@ -45,5 +45,8 @@ def verify_otp(request: user_schemas.VerifyOTPRequest, db: Session = Depends(get
     return {
         "access_token": access_token,
         "token_type": "bearer",
-        "is_new_user": is_new_user
+        "is_new_user": is_new_user,
+        "user_id": user.user_id,
+        "role": user.role,
+        "full_name": user.full_name
     }

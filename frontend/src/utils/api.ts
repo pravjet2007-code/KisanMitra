@@ -258,6 +258,7 @@ export interface OrderItem {
     order_item_id: number;
     seller_id: number;
     price_at_purchase: string;
+    product: ApiProduct;
 }
 
 export interface OrderStatusHistory {
@@ -582,8 +583,6 @@ interface PaymentCaptureResponse {
 export const capturePayment = async (
   params: PaymentCaptureParams
 ): Promise<PaymentCaptureResponse> => {
-  const token = localStorage.getItem('authToken'); // Adjust based on your auth implementation
-  
   const queryParams = new URLSearchParams({
     order_id: params.order_id.toString(),
     transaction_id: params.transaction_id,
@@ -591,18 +590,15 @@ export const capturePayment = async (
   });
 
   const response = await fetch(
-    `${import.meta.env.VITE_API_BASE_URL}/api/v1/payments/capture?${queryParams}`,
+    `${BASE_URL}/api/v1/payments/capture?${queryParams}`,
     {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { Authorization: `Bearer ${token}` }),
-      },
+      headers: authHeaders(),
     }
   );
 
   if (!response.ok) {
-    const error = await response.json();
+    const error = await response.json().catch(() => ({ detail: response.statusText }));
     throw new Error(error.detail || 'Payment capture failed');
   }
 

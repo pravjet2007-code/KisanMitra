@@ -11,8 +11,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 sql_app.db
-backend\.env
-frontend\.env
+backend/.env
+frontend/.env
+.env
 
 # Project Specific
 PlantVillage/

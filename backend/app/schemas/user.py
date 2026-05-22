@@ -42,3 +42,6 @@ class Token(BaseModel):
     access_token: str
     token_type: str
     is_new_user: bool
+    user_id: Optional[int] = None
+    role: Optional[str] = None
+    full_name: Optional[str] = None

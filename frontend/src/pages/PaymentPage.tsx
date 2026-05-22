@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import PaymentProcessor from '../components/Payment';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import { ordersApi } from '../utils/api';
 
 interface OrderDetails {
   id: number;
@@ -46,23 +47,22 @@ const PaymentPage: React.FC = () => {
   const fetchOrderDetails = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('authToken');
-
-      const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/api/v1/orders/${orderId}`,
-        {
-          headers: {
-            ...(token && { Authorization: `Bearer ${token}` }),
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch order details');
-      }
-
-      const data = await response.json();
-      setOrderDetails(data);
+      const data = await ordersApi.get(parseInt(orderId || ''));
+      
+      const mappedDetails: OrderDetails = {
+        id: data.order_id,
+        total_amount: parseFloat(data.total_amount as any) || 0,
+        status: data.current_status,
+        created_at: data.created_at,
+        items: data.items.map((item) => ({
+          id: item.order_item_id,
+          name: item.product.name,
+          quantity: parseFloat(item.quantity as any) || 0,
+          price: parseFloat(item.price_at_purchase as any) || 0,
+        })),
+        farmer_name: undefined, // optional fallback or check
+      };
+      setOrderDetails(mappedDetails);
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : 'Failed to load order details';

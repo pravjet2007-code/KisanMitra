@@ -153,7 +153,7 @@ export default function FarmerDashboard() {
   };
 
   useEffect(() => {
-    if (activeTab === 'market') {
+    if (user?.user_id) {
       fetchMarketData();
     }
   }, [activeTab, user?.user_id]);
@@ -311,6 +311,53 @@ export default function FarmerDashboard() {
       }
     );
   }, []);
+
+  // Compute farmer specific stats and transactions
+  const farmerConfirmedOrders = farmerOrders.filter(
+    (o) => o.current_status !== 'PENDING' && o.current_status !== 'CANCELLED'
+  );
+
+  const totalFarmerEarnings = farmerConfirmedOrders.reduce((sum, order) => {
+    const myItems = order.items.filter(item => 
+      farmerProducts.some(p => p.product_id === item.product_id)
+    );
+    return sum + myItems.reduce((s, item) => s + (parseFloat(item.price_at_purchase) || 0) * (parseFloat(item.quantity) || 0), 0);
+  }, 0);
+
+  const completedFarmerOrdersCount = farmerOrders.filter(
+    (o) => o.current_status === 'DELIVERED'
+  ).length;
+
+  const pendingFarmerOrdersCount = farmerOrders.filter(
+    (o) => o.current_status !== 'DELIVERED' && o.current_status !== 'CANCELLED' && o.current_status !== 'PENDING'
+  ).length;
+
+  const farmerTransactions = farmerOrders
+    .filter(o => o.current_status !== 'PENDING' && o.current_status !== 'CANCELLED')
+    .map(order => {
+      const myItems = order.items.filter(item => 
+        farmerProducts.some(p => p.product_id === item.product_id)
+      );
+      const itemsSummary = myItems.map(item => {
+        const prod = farmerProducts.find(p => p.product_id === item.product_id);
+        return `${prod?.name || 'Crop'} (${parseFloat(item.quantity)} ${prod?.unit_of_measure || 'kg'})`;
+      }).join(', ');
+
+      const totalEarned = myItems.reduce(
+        (sum, item) => sum + (parseFloat(item.price_at_purchase) || 0) * (parseFloat(item.quantity) || 0),
+        0
+      );
+
+      return {
+        orderId: order.order_id,
+        date: new Date(order.created_at).toLocaleDateString(),
+        itemsSummary,
+        buyerId: order.buyer_id,
+        amount: totalEarned,
+        status: order.current_status,
+      };
+    })
+    .filter(txn => txn.amount > 0);
 
   const tabs: { key: Tab; label: string; icon: React.ElementType }[] = [
     { key: 'overview', label: t('farmerDash.tabs.overview', 'Overview'), icon: BarChart3 },
@@ -1713,23 +1760,78 @@ export default function FarmerDashboard() {
 
           {/* TRANSACTIONS TAB */}
           {activeTab === 'transactions' && (
-            <div className="space-y-6 animate-fade-in">
-              <div className="grid md:grid-cols-3 gap-4">
+            <div className="space-y-6 animate-fade-in text-left">
+              <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-white rounded-2xl p-6 shadow-xs border border-border text-center">
                   <p className="text-sm text-muted">Total Earnings</p>
-                  <p className="font-heading text-3xl font-bold text-black mt-2">₹0</p>
+                  <p className="font-heading text-3xl font-bold text-emerald-600 mt-2">₹{totalFarmerEarnings.toLocaleString('en-IN')}</p>
                   <p className="text-xs text-muted mt-1">This season</p>
                 </div>
                 <div className="bg-white rounded-2xl p-6 shadow-xs border border-border text-center">
-                  <p className="text-sm text-muted">Farmer Score</p>
-                  <p className="font-heading text-3xl font-bold text-amber mt-2">—</p>
-                  <p className="text-xs text-muted mt-1">Complete sales to build score</p>
+                  <p className="text-sm text-muted">Completed Sales</p>
+                  <p className="font-heading text-3xl font-bold text-black mt-2">{completedFarmerOrdersCount}</p>
+                  <p className="text-xs text-muted mt-1">Delivered crops</p>
                 </div>
                 <div className="bg-white rounded-2xl p-6 shadow-xs border border-border text-center">
-                  <p className="text-sm text-muted">Completed Orders</p>
-                  <p className="font-heading text-3xl font-bold text-black mt-2">0</p>
-                  <p className="text-xs text-muted mt-1">No disputes</p>
+                  <p className="text-sm text-muted">Pending Orders</p>
+                  <p className="font-heading text-3xl font-bold text-amber mt-2">{pendingFarmerOrdersCount}</p>
+                  <p className="text-xs text-muted mt-1">Awaiting dispatch</p>
                 </div>
+                <div className="bg-white rounded-2xl p-6 shadow-xs border border-border text-center">
+                  <p className="text-sm text-muted">Farmer Score</p>
+                  <p className="font-heading text-3xl font-bold text-sage mt-2">
+                    {completedFarmerOrdersCount > 0 ? '9.8' : '—'}
+                  </p>
+                  <p className="text-xs text-muted mt-1">Build trust with buyers</p>
+                </div>
+              </div>
+
+              {/* Transactions Table Card */}
+              <div className="bg-white rounded-2xl p-6 shadow-xs border border-border overflow-hidden">
+                <h3 className="font-heading text-lg font-bold text-black mb-4">Historical Transaction Settlements</h3>
+                
+                {farmerTransactions.length === 0 ? (
+                  <div className="py-12 text-center border-2 border-dashed border-border rounded-xl">
+                    <CreditCard className="w-12 h-12 text-muted mx-auto mb-3" />
+                    <h5 className="font-heading text-base font-bold text-black mb-1">No settled transactions yet</h5>
+                    <p className="text-muted text-sm max-w-sm mx-auto">When crops are purchased and paid for, your escrow settlements and earnings list will appear here.</p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse text-left">
+                      <thead>
+                        <tr className="border-b border-border/80 text-xs font-bold text-muted uppercase tracking-wider">
+                          <th className="py-3 px-4">Order ID</th>
+                          <th className="py-3 px-4">Date</th>
+                          <th className="py-3 px-4">Crops Sold</th>
+                          <th className="py-3 px-4">Buyer ID</th>
+                          <th className="py-3 px-4">Settled Status</th>
+                          <th className="py-3 px-4 text-right">Your Earnings</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border/60">
+                        {farmerTransactions.map((txn, idx) => (
+                          <tr key={idx} className="text-sm hover:bg-offwhite/50 transition-colors">
+                            <td className="py-4 px-4 font-mono font-bold text-xs text-muted">#{txn.orderId}</td>
+                            <td className="py-4 px-4 text-xs font-medium text-black">{txn.date}</td>
+                            <td className="py-4 px-4 font-semibold text-black max-w-xs truncate" title={txn.itemsSummary}>{txn.itemsSummary}</td>
+                            <td className="py-4 px-4 text-xs text-muted">Buyer #{txn.buyerId}</td>
+                            <td className="py-4 px-4">
+                              <span className={`px-2.5 py-1 text-[10px] font-bold rounded-full border shadow-2xs uppercase tracking-wide ${
+                                txn.status === 'DELIVERED' ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' :
+                                txn.status === 'CONFIRMED' ? 'bg-sage/20 text-sage-dark border-sage/35' :
+                                'bg-blue-500/10 text-blue-600 border-blue-500/20'
+                              }`}>
+                                {txn.status}
+                              </span>
+                            </td>
+                            <td className="py-4 px-4 text-right font-heading font-bold text-emerald-600">₹{txn.amount.toLocaleString('en-IN')}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
             </div>
           )}

@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import {
   Store, Package, ShoppingCart, TrendingUp, Settings,
-  MapPin, ChevronRight, BarChart3, Clock, DollarSign,
+  MapPin, ChevronRight, Clock, DollarSign,
   Plus, Edit, Trash2, Loader2, Search, Bell, Upload,
-  CheckCircle2, X, Star, FileText, AlertTriangle, Shield,
-  UploadCloud, ArrowRight
+  CheckCircle2, X, Star, AlertTriangle,
+  UploadCloud
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
@@ -48,7 +47,6 @@ export default function SellerDashboard() {
   const [sellerProducts, setSellerProducts] = useState<ApiProduct[]>([]);
   const [sellerOrders, setSellerOrders] = useState<ApiOrder[]>([]);
   const [dbCategories, setDbCategories] = useState<{ category_id: number; name: string }[]>([]);
-  const [loadingData, setLoadingData] = useState(false);
   const [submittingProduct, setSubmittingProduct] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
 
@@ -74,7 +72,6 @@ export default function SellerDashboard() {
   // Fetch products & orders for this seller
   const fetchDashboardData = async () => {
     if (!user?.user_id) return;
-    setLoadingData(true);
     try {
       const cats = await productsApi.getCategories();
       setDbCategories(cats);
@@ -87,8 +84,6 @@ export default function SellerDashboard() {
       setSellerOrders(myOrders);
     } catch (err) {
       console.error('Failed to fetch seller dashboard data:', err);
-    } finally {
-      setLoadingData(false);
     }
   };
 

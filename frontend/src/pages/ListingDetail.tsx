@@ -1,15 +1,21 @@
 import { useState, useEffect } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import ReviewSection from '../components/ReviewSection';
 import {
   Star, MapPin, CheckCircle2, Users, Leaf, Bug, Microscope,
   Droplets, Shield, CreditCard, Truck,
   ArrowLeft, MessageSquare, Calendar, Package, TrendingUp,
-  ChevronRight, Download, Phone, Loader2
+  ChevronRight, Download, Phone, Loader2, ShoppingCart, Plus, Minus
 } from 'lucide-react';
+import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 
 export default function ListingDetail() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { addItem, adding, isInCart } = useCart();
+  const { isAuthenticated, role } = useAuth();
+
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -18,6 +24,9 @@ export default function ListingDetail() {
   const [showOffer, setShowOffer] = useState(false);
   const [offerPrice, setOfferPrice] = useState('2250');
   const [offerSubmitted, setOfferSubmitted] = useState(false);
+  const [selectedQty, setSelectedQty] = useState(1);
+  const [cartError, setCartError] = useState<string | null>(null);
+  const [cartSuccess, setCartSuccess] = useState(false);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -32,6 +41,12 @@ export default function ListingDetail() {
         // Set dynamic offer price to 95% of listing price as a reasonable starting offer
         const priceVal = parseFloat(data.price_per_unit) || 0;
         setOfferPrice(Math.round(priceVal * 0.95).toString());
+        const stockVal = parseFloat(data.stock_quantity) || 0;
+        if (stockVal <= 0) {
+          setSelectedQty(0);
+        } else {
+          setSelectedQty(1);
+        }
       } catch (err: any) {
         setError(err.message || 'Failed to load product details');
       } finally {
@@ -82,9 +97,58 @@ export default function ListingDetail() {
 
   const price = parseFloat(product.price_per_unit) || 0;
   const stock = parseFloat(product.stock_quantity) || 0;
-  const totalValue = price * stock;
+  const totalValue = price * selectedQty;
   const estTransport = Math.round(totalValue * 0.045) || 1800; // 4.5% of total value or default ₹1800
   const netTotal = totalValue + estTransport;
+
+
+  const handleAddToCart = async () => {
+    setCartError(null);
+    setCartSuccess(false);
+    
+    if (!isAuthenticated) {
+      navigate('/auth');
+      return;
+    }
+    
+    if (role !== 'buyer' && role !== 'farmer') {
+      setCartError('Please log in as a Buyer or Farmer to add items to the cart.');
+      return;
+    }
+    
+    try {
+      await addItem(product.product_id, selectedQty);
+      setCartSuccess(true);
+      
+      // Auto dismiss success toast
+      setTimeout(() => {
+        setCartSuccess(false);
+      }, 3000);
+    } catch (err: any) {
+      setCartError(err.message || 'Failed to add item to cart. Please try again.');
+    }
+  };
+
+  const handleBuyNow = async () => {
+    setCartError(null);
+    
+    if (!isAuthenticated) {
+      navigate('/auth');
+      return;
+    }
+    
+    if (role !== 'buyer' && role !== 'farmer') {
+      setCartError('Please log in as a Buyer or Farmer to purchase items.');
+      return;
+    }
+    
+    try {
+      await addItem(product.product_id, selectedQty);
+      navigate('/cart');
+    } catch (err: any) {
+      setCartError(err.message || 'Failed to purchase. Please try again.');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-offwhite pt-24 pb-12">
@@ -309,7 +373,7 @@ export default function ListingDetail() {
                   <div>
                     <p className="text-sm text-muted">Total Value</p>
                     <p className="font-heading text-3xl font-bold text-black">₹{totalValue.toLocaleString('en-IN')}</p>
-                    <p className="text-xs text-dark">{stock} {product.unit_of_measure || 'Units'} × ₹{price.toLocaleString('en-IN')}</p>
+                    <p className="text-xs text-dark">{selectedQty} {product.unit_of_measure || 'Units'} × ₹{price.toLocaleString('en-IN')}</p>
                   </div>
                   <div className="flex items-center gap-1 px-3 py-1.5 bg-amber/10 text-amber text-sm font-semibold rounded-full">
                     <Star className="w-4 h-4 fill-amber" /> {product.average_rating ? product.average_rating.toFixed(1) : '4.5'}
@@ -319,7 +383,7 @@ export default function ListingDetail() {
                 <div className="space-y-2.5 mb-6">
                   {[
                     { label: 'Price per unit', value: `₹${price.toLocaleString('en-IN')} / ${product.unit_of_measure || 'unit'}` },
-                    { label: 'Quantity Available', value: `${stock} ${product.unit_of_measure || 'Units'}` },
+                    { label: 'Quantity Selected', value: `${selectedQty} ${product.unit_of_measure || 'Units'}` },
                     { label: 'Est. Logistics & Transport', value: `₹${estTransport.toLocaleString('en-IN')}` },
                   ].map((row, i) => (
                     <div key={i} className="flex justify-between text-sm">
@@ -333,6 +397,44 @@ export default function ListingDetail() {
                   </div>
                 </div>
 
+                {/* Quantity Selector Counter */}
+                <div className="bg-offwhite rounded-xl p-4 border border-light mb-4 flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-semibold text-dark mb-1">Purchase Quantity</p>
+                    <p className="text-[10px] text-muted">Available stock: {stock} {product.unit_of_measure}</p>
+                  </div>
+                  <div className="flex items-center gap-3 bg-white border border-border rounded-xl px-2 py-1 shadow-2xs">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedQty(prev => Math.max(1, prev - 1))}
+                      disabled={selectedQty <= 1 || stock <= 0}
+                      className="p-1 text-muted hover:text-dark hover:bg-light rounded-lg transition-colors disabled:opacity-30"
+                    >
+                      <Minus className="w-4 h-4" />
+                    </button>
+                    <input
+                      type="number"
+                      min="1"
+                      max={stock}
+                      value={stock <= 0 ? 0 : selectedQty}
+                      disabled={stock <= 0}
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value) || 1;
+                        setSelectedQty(Math.min(stock, Math.max(1, val)));
+                      }}
+                      className="w-12 text-center font-heading font-bold text-black border-none bg-transparent focus:ring-0 outline-none p-0 disabled:opacity-50"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setSelectedQty(prev => Math.min(stock, prev + 1))}
+                      disabled={selectedQty >= stock || stock <= 0}
+                      className="p-1 text-muted hover:text-dark hover:bg-light rounded-lg transition-colors disabled:opacity-30"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+
                 {offerSubmitted ? (
                   <div className="bg-sage/10 border border-sage/20 rounded-xl p-6 text-center">
                     <CheckCircle2 className="w-10 h-10 text-sage mx-auto mb-3" />
@@ -341,11 +443,70 @@ export default function ListingDetail() {
                   </div>
                 ) : (
                   <>
-                    <button onClick={() => setOfferSubmitted(true)} className="w-full py-4 bg-terracotta text-white font-heading font-semibold rounded-xl hover:bg-terracotta-dark transition-all shadow-md text-base mb-3 text-center">
-                      Buy Now — ₹{totalValue.toLocaleString('en-IN')}
-                    </button>
+                    {/* Error Alerts */}
+                    {cartError && (
+                      <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-600">
+                        ⚠️ {cartError}
+                      </div>
+                    )}
+                    
+                    {/* Success Alert */}
+                    {cartSuccess && (
+                      <div className="mb-4 p-3.5 bg-green-50 border border-green-200 rounded-xl text-xs text-green-700 flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
+                        <div>
+                          <p className="font-semibold">Successfully added to Cart!</p>
+                          <p className="text-muted text-[10px]">Go to <Link to="/cart" className="underline font-bold text-green-800">Your Cart</Link> to check out.</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {isAuthenticated && role === 'seller' ? (
+                      <div className="mb-4 p-4 bg-amber/5 border border-amber/20 rounded-xl text-center shadow-2xs">
+                        <p className="text-sm font-semibold text-amber-800">
+                          Logged in as Seller/Vendor
+                        </p>
+                        <p className="text-xs text-muted mt-1">
+                          Only Buyers or Farmers can purchase products. Please log in with a Buyer or Farmer account.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-2 gap-3 mb-3">
+                        {stock <= 0 ? (
+                          <button
+                            disabled
+                            className="col-span-2 py-4 bg-medium/10 text-medium/60 border border-border/50 font-heading font-semibold rounded-xl text-sm text-center flex items-center justify-center gap-2 cursor-not-allowed"
+                          >
+                            Out of Stock
+                          </button>
+                        ) : (
+                          <>
+                            <button
+                              onClick={handleBuyNow}
+                              disabled={adding === product.product_id}
+                              className="py-4 bg-terracotta text-white font-heading font-semibold rounded-xl hover:bg-terracotta-dark transition-all shadow-md text-sm text-center flex items-center justify-center gap-2"
+                            >
+                              Buy Now
+                            </button>
+                            <button
+                              onClick={handleAddToCart}
+                              disabled={adding === product.product_id}
+                              className="py-4 border-2 border-terracotta text-terracotta font-heading font-semibold rounded-xl hover:bg-terracotta/5 transition-all text-sm text-center flex items-center justify-center gap-2"
+                            >
+                              {adding === product.product_id ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <ShoppingCart className="w-4 h-4" />
+                              )}
+                              {isInCart(product.product_id) ? 'Added to Cart' : 'Add to Cart'}
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    )}
+
                     {!showOffer ? (
-                      <button onClick={() => setShowOffer(true)} className="w-full py-4 border-2 border-terracotta text-terracotta font-heading font-semibold rounded-xl hover:bg-terracotta/5 transition-all text-base text-center">
+                      <button onClick={() => setShowOffer(true)} className="w-full py-4 border border-border text-dark hover:bg-light font-heading font-semibold rounded-xl transition-all text-sm text-center">
                         Make an Offer
                       </button>
                     ) : (

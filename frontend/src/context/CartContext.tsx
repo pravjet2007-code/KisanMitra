@@ -28,9 +28,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [adding, setAdding] = useState<number | null>(null);
   const [removing, setRemoving] = useState<number | null>(null);
 
-  // Only buyers have a cart
+  // Buyers and Farmers can have a cart
   const buyerId: number | null =
-    isAuthenticated && role === 'buyer' && user?.user_id ? user.user_id : null;
+    isAuthenticated && (role === 'buyer' || role === 'farmer') && user && typeof user.user_id === 'number' ? user.user_id : null;
 
   const fetchCart = useCallback(async () => {
     if (!buyerId) { setItems([]); return; }
@@ -50,7 +50,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [fetchCart]);
 
   const addItem = async (product_id: number, quantity = 1) => {
-    if (!buyerId) throw new Error('You must be logged in as a buyer to add items to cart.');
+    if (!buyerId) throw new Error('You must be logged in to add items to the cart.');
     setAdding(product_id);
     try {
       const payload: AddToCartPayload = { product_id, quantity, buyer_id: buyerId };

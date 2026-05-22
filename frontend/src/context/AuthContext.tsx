@@ -9,7 +9,8 @@ import {
 
 // ─── Toggle: set VITE_MOCK_AUTH=false in .env to use real FastAPI backend ───
 const IS_MOCK = import.meta.env.VITE_MOCK_AUTH !== 'false';
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_URL = BASE_URL.endsWith('/api') ? BASE_URL : `${BASE_URL}/api`;
 
 export interface AuthContextType {
   user: User | null;

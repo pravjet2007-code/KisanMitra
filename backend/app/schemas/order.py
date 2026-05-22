@@ -4,6 +4,7 @@ from uuid import UUID
 from datetime import datetime
 from decimal import Decimal
 from ..db.models import OrderStatus, PaymentStatus
+from .product import Product
 
 class OrderItemBase(BaseModel):
     product_id: int
@@ -16,6 +17,7 @@ class OrderItem(OrderItemBase):
     order_item_id: int
     seller_id: int
     price_at_purchase: Decimal
+    product: Product
 
     class Config:
         from_attributes = True
